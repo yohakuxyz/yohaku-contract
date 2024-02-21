@@ -1,0 +1,15 @@
+{
+  "scripts": {
+    "compile": "forge compile",
+    "build": "forge build",
+    "test": "forge test",
+    "test:coverage": "forge coverage",
+    "format": "forge fmt",
+    "clean": "rm -rf cache out"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-foundry": "^1.1.1",
+    "@nomicfoundation/hardhat-toolbox": "^4.0.0",
+    "hardhat": "^2.20.1"
+  }
+}
