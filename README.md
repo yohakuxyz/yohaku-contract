@@ -1,13 +1,31 @@
-# Sample Hardhat Project
+# Sample ERC6551 Project
 
-This project demonstrates a basic Hardhat use case. It comes with a sample contract, a test for that contract, and a script that deploys that contract.
 
-Try running some of the following tasks:
+## Reference
+
+https://eips.ethereum.org/EIPS/eip-6551
+
+https://github.com/erc6551/reference
+
+https://github.com/tokenbound/contracts
+
+https://qiita.com/cardene/items/8a0e50b939e0c95f3592
+
+https://zenn.dev/thirdweb_jp/articles/ce2c7bdc39ff85
+
+## Command
 
 ```shell
-npx hardhat help
-npx hardhat test
-REPORT_GAS=true npx hardhat test
-npx hardhat node
-npx hardhat run scripts/deploy.ts
+cp .env.example .env
+
+pnpm install
+
+# compile
+pnpm compile
+
+# build
+pnpm build
+
+# test
+pnpm test <options>
 ```

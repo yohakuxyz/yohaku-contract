@@ -4,14 +4,6 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
-dependencies:
-  '@openzeppelin/contracts':
-    specifier: ^5.0.1
-    version: 5.0.1
-  erc6551:
-    specifier: ^0.3.1
-    version: 0.3.1
-
 devDependencies:
   '@nomicfoundation/hardhat-foundry':
     specifier: ^1.1.1
@@ -838,10 +830,6 @@ packages:
       '@nomicfoundation/solidity-analyzer-win32-ia32-msvc': 0.1.1
       '@nomicfoundation/solidity-analyzer-win32-x64-msvc': 0.1.1
     dev: true
-
-  /@openzeppelin/contracts@5.0.1:
-    resolution: {integrity: sha512-yQJaT5HDp9hYOOp4jTYxMsR02gdFZFXhewX5HW9Jo4fsqSVqqyIO/xTHdWDaKX5a3pv1txmf076Lziz+sO7L1w==}
-    dev: false
 
   /@scure/base@1.1.5:
     resolution: {integrity: sha512-Brj9FiG2W1MRQSTB212YVPRrcbjkv48FoZi/u4l/zds/ieRrqsh7aUf6CLwkAq61oKXr/ZlTzlY66gLIj3TFTQ==}
@@ -1786,10 +1774,6 @@ packages:
     resolution: {integrity: sha512-+h1lkLKhZMTYjog1VEpJNG7NZJWcuc2DDk/qsqSTRRCOXiLjeQ1d1/udrUGhqMxUgAlwKNZ0cf2uqan5GLuS2A==}
     engines: {node: '>=6'}
     dev: true
-
-  /erc6551@0.3.1:
-    resolution: {integrity: sha512-4+O7CJ5gn3/s2Mum1QiJDJUbGE1P1m0t3do2nnFAKWEXLubWfZjS12HqraUJ6Y6su3WJ8EqdWm0270gC0bqpCA==}
-    dev: false
 
   /es-define-property@1.0.0:
     resolution: {integrity: sha512-jxayLKShrEqqzJ0eumQbVhTYQM27CfT1T35+gCgDFoL82JLsXqTJ76zv6A0YLOgEnLUMvLzsDsGIrl8NFpT2gQ==}
