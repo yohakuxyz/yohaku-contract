@@ -3,7 +3,7 @@ pragma solidity ^0.8.20;
 
 import {Test, console} from "forge-std/Test.sol";
 
-import {LicenceNFT} from "../../contracts/LicenceNFT.sol";
+import {MockNFT, MockERC1155} from "../../contracts/MockNFT.sol";
 import {Registry} from "../../contracts/Registry.sol";
 import {TokenBoundAccount} from "../../contracts/TokenBoundAccount.sol";
 import {IERC721} from "openzeppelin/contracts/token/ERC721/IERC721.sol";
@@ -11,12 +11,14 @@ import {IERC6551Account} from "erc6551/interfaces/IERC6551Account.sol";
 import {IERC6551Executable} from "erc6551/interfaces/IERC6551Executable.sol";
 
 contract TokenBoundAccountTest is Test {
-    LicenceNFT public licenceNFT;
+    MockNFT public mockNFT;
+    MockERC1155 public mockERC1155;
     TokenBoundAccount public implementation;
     Registry public registry;
     address owner = makeAddr("owner");
     function setUp() public {
-        licenceNFT = deployLicenceNFT();
+        mockNFT = deployMockNFT();
+        mockERC1155 = deployMockERC1155();
         registry = deployRegistry();
         implementation = new TokenBoundAccount();
     }
@@ -24,13 +26,13 @@ contract TokenBoundAccountTest is Test {
     function test_createAccount() public {
         setUp();
         vm.startPrank(owner);
-        licenceNFT.safeMint(owner);
+        mockNFT.safeMint(owner);
 
         address account = registry.createAccount(
             address(implementation), //implementation
             0, //salt,
             block.chainid, //chainId,
-            address(licenceNFT), //tokenContract
+            address(mockNFT), //tokenContract
             0 //tokenId
         );
 
@@ -40,7 +42,7 @@ contract TokenBoundAccountTest is Test {
                 address(implementation), //implementation
                 0, //salt,
                 block.chainid, //chainId,
-                address(licenceNFT), //tokenContract
+                address(mockNFT), //tokenContract
                 0 //tokenId
             )
         );
@@ -49,12 +51,12 @@ contract TokenBoundAccountTest is Test {
     function test_sendTransaction() external {
         vm.startPrank(owner);
         address recipient = makeAddr("recipient");
-        licenceNFT.safeMint(owner);
+        mockNFT.safeMint(owner);
         address account = registry.createAccount(
             address(implementation), //implementation
             0, //salt,
             block.chainid, //chainId,
-            address(licenceNFT), //tokenContract
+            address(mockNFT), //tokenContract
             0 //tokenId
         );
         assertTrue(account != address(0));
@@ -78,8 +80,71 @@ contract TokenBoundAccountTest is Test {
         assertEq(accountInstance.state(), 1);
     }
 
-    function deployLicenceNFT() public returns (LicenceNFT) {
-        return new LicenceNFT();
+    function test_getMockNFT() public {
+        vm.startPrank(owner);
+        mockNFT.safeMint(owner);
+        address account = registry.createAccount(
+            address(implementation), //implementation
+            0, //salt,
+            block.chainid, //chainId,
+            address(mockNFT), //tokenContract
+            0 //tokenId
+        );
+
+        TokenBoundAccount tba = TokenBoundAccount(payable(account));
+        mockNFT.safeMint(address(tba));
+
+        TokenBoundAccount.Token memory tokenInfo = TokenBoundAccount.Token(
+            address(mockNFT),
+            0, // just set to 0 for ERC721
+            TokenBoundAccount.TokenType.ERC721
+        );
+        assertEq(tba.getTokenBalance(tokenInfo), 2);
+    }
+    function test_getMockERC1155() public {
+        vm.startPrank(owner);
+        mockNFT.safeMint(owner);
+        address account = registry.createAccount(
+            address(implementation), //implementation
+            0, //salt,
+            block.chainid, //chainId,
+            address(mockNFT), //tokenContract
+            0 //tokenId
+        );
+
+        TokenBoundAccount tba = TokenBoundAccount(payable(account));
+        mockERC1155.mint(address(tba), 0, 2, "");
+        TokenBoundAccount.Token memory tokenInfo = TokenBoundAccount.Token(
+            address(mockERC1155),
+            0, // just set to 0 for ERC721
+            TokenBoundAccount.TokenType.ERC1155
+        );
+        assertEq(MockERC1155(mockERC1155).balanceOf(address(tba), 0), 2);
+        assertEq(tba.getTokenBalance(tokenInfo), 2);
+    }
+
+    function test_getTokenCounts() public {
+        vm.startPrank(owner);
+        mockNFT.safeMint(owner);
+        address account = createTBA();
+    }
+
+    function createTBA() public returns (address) {
+        address account = registry.createAccount(
+            address(implementation), //implementation
+            0, //salt,
+            block.chainid, //chainId,
+            address(mockNFT), //tokenContract
+            0 //tokenId
+        );
+        return account;
+    }
+
+    function deployMockNFT() public returns (MockNFT) {
+        return new MockNFT();
+    }
+    function deployMockERC1155() public returns (MockERC1155) {
+        return new MockERC1155();
     }
     function deployRegistry() public returns (Registry) {
         return new Registry();
