@@ -9,8 +9,6 @@ import {TokenBoundAccount} from "../contracts/TokenBoundAccount.sol";
 
 // // forge script script/TokenBoundAccount.s.sol:TokenBoundAccountSctipt --rpc-url https://optimism-goerli.infura.io/v3/APIkey --broadcast -vvvv --private-key PrivateKey --etherscan-api-key APIkey --verify
 contract TokenBoundAccountSctipt is Script {
-    uint256 deployerPrivateKey = vm.envUint("DEPLOYER_PRIVATE_KEY");
-
     address public owner;
     address public constant ERC721_CONTRACT =
         0x6eE3aD827EbfCc12F14DC61DCDF5CeE88395b51A;
