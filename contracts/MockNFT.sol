@@ -8,8 +8,7 @@ import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Burnable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 // Mock ERC721 contract for testing purposes
-// https://wizard.openzeppelin.com/#erc721
-
+// https://wizard.openzeppelin.com
 contract MockERC721 is ERC721 {
     uint256 private _nextTokenId;
 

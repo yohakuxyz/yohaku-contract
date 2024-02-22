@@ -2,13 +2,13 @@
 pragma solidity ^0.8.20;
 
 import {Test, console} from "forge-std/Test.sol";
+import {IERC721} from "openzeppelin/contracts/token/ERC721/IERC721.sol";
+import {IERC6551Account} from "erc6551/interfaces/IERC6551Account.sol";
+import {IERC6551Executable} from "erc6551/interfaces/IERC6551Executable.sol";
 
 import {MockERC721, MockERC1155} from "../../contracts/MockNFT.sol";
 import {Registry} from "../../contracts/Registry.sol";
 import {TokenBoundAccount} from "../../contracts/TokenBoundAccount.sol";
-import {IERC721} from "openzeppelin/contracts/token/ERC721/IERC721.sol";
-import {IERC6551Account} from "erc6551/interfaces/IERC6551Account.sol";
-import {IERC6551Executable} from "erc6551/interfaces/IERC6551Executable.sol";
 
 contract TokenBoundAccountTest is Test {
     MockERC721 public mockERC721;
@@ -16,6 +16,7 @@ contract TokenBoundAccountTest is Test {
     TokenBoundAccount public implementation;
     Registry public registry;
     address owner = makeAddr("owner");
+
     function setUp() public {
         mockERC721 = deployMockERC721();
         mockERC1155 = deployMockERC1155();
@@ -27,14 +28,7 @@ contract TokenBoundAccountTest is Test {
         setUp();
         vm.startPrank(owner);
         mockERC721.safeMint(owner);
-
-        address account = registry.createAccount(
-            address(implementation), //implementation
-            0, //salt,
-            block.chainid, //chainId,
-            address(mockERC721), //tokenContract
-            0 //tokenId
-        );
+        address account = createTBA();
 
         assertEq(
             account,
@@ -52,22 +46,13 @@ contract TokenBoundAccountTest is Test {
         vm.startPrank(owner);
         address recipient = makeAddr("recipient");
         mockERC721.safeMint(owner);
-        address account = registry.createAccount(
-            address(implementation), //implementation
-            0, //salt,
-            block.chainid, //chainId,
-            address(mockERC721), //tokenContract
-            0 //tokenId
-        );
-        assertTrue(account != address(0));
+        address account = createTBA();
 
         IERC6551Account accountInstance = IERC6551Account(payable(account));
         IERC6551Executable executableAccountInstance = IERC6551Executable(
             account
         );
-
-        address ownerAccount = TokenBoundAccount(payable(account)).owner();
-        assertEq(ownerAccount, owner);
+        assertEq(TokenBoundAccount(payable(account)).owner(), owner);
 
         assertEq(
             accountInstance.isValidSigner(owner, ""),
@@ -83,13 +68,7 @@ contract TokenBoundAccountTest is Test {
     function test_getMockERC721() public {
         vm.startPrank(owner);
         mockERC721.safeMint(owner);
-        address account = registry.createAccount(
-            address(implementation), //implementation
-            0, //salt,
-            block.chainid, //chainId,
-            address(mockERC721), //tokenContract
-            0 //tokenId
-        );
+        address account = createTBA();
 
         TokenBoundAccount tba = TokenBoundAccount(payable(account));
         mockERC721.safeMint(address(tba));
@@ -102,16 +81,11 @@ contract TokenBoundAccountTest is Test {
         );
         assertEq(tba.getTokenBalance(tokenInfo), 2);
     }
+
     function test_getMockERC1155() public {
         vm.startPrank(owner);
         mockERC721.safeMint(owner);
-        address account = registry.createAccount(
-            address(implementation), //implementation
-            0, //salt,
-            block.chainid, //chainId,
-            address(mockERC721), //tokenContract
-            0 //tokenId
-        );
+        address account = createTBA();
 
         TokenBoundAccount tba = TokenBoundAccount(payable(account));
         mockERC1155.mint(address(tba), 0, 2, "");
@@ -157,6 +131,7 @@ contract TokenBoundAccountTest is Test {
             address(mockERC721), //tokenContract
             0 //tokenId
         );
+        assertTrue(account != address(0));
         return account;
     }
 

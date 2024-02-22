@@ -151,6 +151,7 @@ contract TokenBoundAccount is
         return count;
     }
 
+    /// @inheritdoc IERC721Receiver
     function onERC721Received(
         address,
         address,
@@ -160,6 +161,7 @@ contract TokenBoundAccount is
         return IERC721Receiver.onERC721Received.selector;
     }
 
+    /// @inheritdoc IERC1155Receiver
     function onERC1155Received(
         address,
         address,
@@ -169,7 +171,7 @@ contract TokenBoundAccount is
     ) public virtual returns (bytes4) {
         return this.onERC1155Received.selector;
     }
-
+    /// @inheritdoc IERC1155Receiver
     function onERC1155BatchReceived(
         address,
         address,
