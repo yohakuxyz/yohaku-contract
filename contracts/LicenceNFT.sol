@@ -9,30 +9,13 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 // Mock ERC721 contract for testing purposes
 // https://wizard.openzeppelin.com/#erc721
 
-contract LicenceNFT is ERC721, ERC721URIStorage, ERC721Burnable, Ownable {
+contract LicenceNFT is ERC721 {
     uint256 private _nextTokenId;
 
-    constructor(
-        address initialOwner
-    ) ERC721("Licence", "YAMA") Ownable(initialOwner) {}
+    constructor() ERC721("Licence", "YAMA") {}
 
-    function safeMint(address to, string memory uri) public onlyOwner {
+    function safeMint(address to) public {
         uint256 tokenId = _nextTokenId++;
         _safeMint(to, tokenId);
-        _setTokenURI(tokenId, uri);
-    }
-
-    // The following functions are overrides required by Solidity.
-
-    function tokenURI(
-        uint256 tokenId
-    ) public view override(ERC721, ERC721URIStorage) returns (string memory) {
-        return super.tokenURI(tokenId);
-    }
-
-    function supportsInterface(
-        bytes4 interfaceId
-    ) public view override(ERC721, ERC721URIStorage) returns (bool) {
-        return super.supportsInterface(interfaceId);
     }
 }

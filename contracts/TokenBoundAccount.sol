@@ -9,6 +9,8 @@ import {SignatureChecker} from "openzeppelin/contracts/utils/cryptography/Signat
 import {IERC6551Account} from "erc6551/interfaces/IERC6551Account.sol";
 import {IERC6551Executable} from "erc6551/interfaces/IERC6551Executable.sol";
 
+error InvalidChainId();
+
 contract TokenBoundAccount is IERC6551Account, IERC6551Executable {
     /// inherit IERC6551Account
     uint256 public state;
@@ -83,9 +85,10 @@ contract TokenBoundAccount is IERC6551Account, IERC6551Executable {
         return abi.decode(footer, (uint256, address, uint256));
     }
 
+    // returns owner of the NFT
     function owner() public view virtual returns (address) {
         (uint256 chainId, address tokenContract, uint256 tokenId) = token();
-        if (chainId != block.chainid) return address(0);
+        if (chainId != block.chainid) revert InvalidChainId();
 
         return IERC721(tokenContract).ownerOf(tokenId);
     }
