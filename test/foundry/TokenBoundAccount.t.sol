@@ -27,7 +27,6 @@ contract TokenBoundAccountTest is Test {
     function test_createAccount() public {
         setUp();
         vm.startPrank(owner);
-        mockERC721.safeMint(owner);
         address account = createTBA();
 
         assertEq(
@@ -45,7 +44,6 @@ contract TokenBoundAccountTest is Test {
     function test_sendTransaction() external {
         vm.startPrank(owner);
         address recipient = makeAddr("recipient");
-        mockERC721.safeMint(owner);
         address account = createTBA();
 
         IERC6551Account accountInstance = IERC6551Account(payable(account));
@@ -67,7 +65,6 @@ contract TokenBoundAccountTest is Test {
 
     function test_getMockERC721() public {
         vm.startPrank(owner);
-        mockERC721.safeMint(owner);
         address account = createTBA();
 
         TokenBoundAccount tba = TokenBoundAccount(payable(account));
@@ -84,7 +81,6 @@ contract TokenBoundAccountTest is Test {
 
     function test_getMockERC1155() public {
         vm.startPrank(owner);
-        mockERC721.safeMint(owner);
         address account = createTBA();
 
         TokenBoundAccount tba = TokenBoundAccount(payable(account));
@@ -123,7 +119,23 @@ contract TokenBoundAccountTest is Test {
         assertEq(tba.getTokenCounts(tokens), 4);
     }
 
+    function test_transferOwnership() public {
+        vm.startPrank(owner);
+        address account = createTBA();
+        address recipient = makeAddr("recipient");
+        TokenBoundAccount tba = TokenBoundAccount(payable(account));
+        assertEq(tba.owner(), owner);
+        mockERC721.safeTransferFrom(owner, recipient, 0);
+        assertEq(recipient, tba.owner());
+
+        vm.deal(address(tba), 1 ether);
+        vm.expectRevert("Invalid signer");
+        tba.execute(payable(address(0)), 0.5 ether, "", 0);
+    }
+
     function createTBA() public returns (address) {
+        mockERC721.safeMint(owner);
+
         address account = registry.createAccount(
             address(implementation), //implementation
             0, //salt,
