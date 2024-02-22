@@ -9,7 +9,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 // Mock ERC721 contract for testing purposes
 // https://wizard.openzeppelin.com/#erc721
 
-contract LicenceNFT is ERC721 {
+contract MockNFT is ERC721 {
     uint256 private _nextTokenId;
 
     constructor() ERC721("Licence", "YAMA") {}
