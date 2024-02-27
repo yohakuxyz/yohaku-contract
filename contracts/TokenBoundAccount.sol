@@ -8,18 +8,43 @@ import {IERC1155Receiver} from "openzeppelin/contracts/token/ERC1155/IERC1155Rec
 import {IERC1155} from "openzeppelin/contracts/token/ERC1155/IERC1155.sol";
 import {IERC1271} from "openzeppelin/contracts/interfaces/IERC1271.sol";
 import {SignatureChecker} from "openzeppelin/contracts/utils/cryptography/SignatureChecker.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
 
 import {IERC6551Account} from "erc6551/interfaces/IERC6551Account.sol";
 import {IERC6551Executable} from "erc6551/interfaces/IERC6551Executable.sol";
 
+import "./NFTFactory.sol";
+
 error InvalidChainId();
 
 contract TokenBoundAccount is
+    Ownable,
     IERC6551Account,
     IERC6551Executable,
     IERC721Receiver,
     IERC1155Receiver
 {
+    constructor(nftFactory _factory) Ownable(msg.sender) {
+        owners.push(msg.sender);
+        nftFactory = _factory;
+    }
+
+    function getOwners() public view returns (address[] memory) {
+        return owners;
+    }
+
+    address[] public owners;
+    NFTFactory public nftFactory;
+
+    // get the total points of all the NFTs owned by the account including the previous owners
+    function getTotalPoint() public view returns (uint8) {
+        uint8 totalPoints = 0;
+        for (uint8 i = 0; i < owners.length; i++) {
+            totalPoints += nftFactory.getTotalPoints(owners[i]);
+        }
+        return totalPoints;
+    }
+
     /// inherit IERC6551Account
     uint256 public state;
 
@@ -109,7 +134,7 @@ contract TokenBoundAccount is
     }
 
     // returns owner of the NFT
-    function owner() public view virtual returns (address) {
+    function owner() public view override returns (address) {
         (uint256 chainId, address tokenContract, uint256 tokenId) = token();
         if (chainId != block.chainid) revert InvalidChainId();
 
@@ -171,6 +196,7 @@ contract TokenBoundAccount is
     ) public virtual returns (bytes4) {
         return this.onERC1155Received.selector;
     }
+
     /// @inheritdoc IERC1155Receiver
     function onERC1155BatchReceived(
         address,
