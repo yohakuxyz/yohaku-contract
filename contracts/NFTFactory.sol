@@ -15,7 +15,7 @@ contract NFTFactory {
     event NFTCreated(address nftAddress);
 
     function createERC721(uint8 _points) public returns (MockERC721) {
-        MockERC721 nft = new MockERC721(_points);
+        MockERC721 nft = new MockERC721(_points, "MockNFT", "MOCK");
         erc721s.push(nft);
         emit NFTCreated(address(nft));
         return nft;
@@ -32,7 +32,7 @@ contract NFTFactory {
         uint256 totalPoints = 0;
         for (uint8 i = 0; i < erc721s.length; i++) {
             erc721s[i].balanceOf(_addr) > 0
-                ? totalPoints += (erc721s[i].getPoinst() *
+                ? totalPoints += (erc721s[i].getPoints() *
                     erc721s[i].balanceOf(_addr))
                 : 0;
         }
@@ -41,7 +41,7 @@ contract NFTFactory {
             for (uint256 j = 0; j < _totalSupply; j++) {
                 erc1155s[i].balanceOf(_addr, j) > 0
                     ? totalPoints +=
-                        erc1155s[i].getPoinst() *
+                        erc1155s[i].getPoints() *
                         erc1155s[i].balanceOf(_addr, j)
                     : 0;
             }

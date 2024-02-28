@@ -10,13 +10,13 @@ import "@openzeppelin/contracts/utils/cryptography/EIP712.sol";
 import "@openzeppelin/contracts/utils/Base64.sol";
 import "./NFTFactory.sol";
 
-contract SkyBlue is ERC721, ERC721Enumerable, Ownable, EIP712 {
+contract SkyBlue is ERC721, ERC721Enumerable, Ownable {
     uint256 private _nextTokenId;
     string private _defaultImageUrl;
     NFTFactory public nftFactory;
-// TODO: manage metadata
+    // TODO: manage metadata
     struct TokenData {
-        address minterAddress;
+        address currentOwner;
         string description;
         string imageUrl;
     }
@@ -28,11 +28,7 @@ contract SkyBlue is ERC721, ERC721Enumerable, Ownable, EIP712 {
         address initialOwner,
         string memory defaultImageUrl,
         NFTFactory _factory
-    )
-        ERC721("SkyBlueNFT", "SKB")
-        Ownable(initialOwner)
-        EIP712("SkyBlueNFT", "1")
-    {
+    ) ERC721("SkyBlueNFT", "SKB") Ownable(initialOwner) {
         _defaultImageUrl = defaultImageUrl;
         nftFactory = _factory;
     }
@@ -56,9 +52,41 @@ contract SkyBlue is ERC721, ERC721Enumerable, Ownable, EIP712 {
         _defaultImageUrl = defaultImageUrl;
     }
 
+    // TODO: should manage permission
+    function setImageURL(
+        uint256 tokenId,
+        string memory imageUrl
+    ) public onlyOwner {
+        _tokenData[tokenId].imageUrl = imageUrl;
+    }
+
     // The following functions are overrides required.
-    function safeMint(address to) public onlyOwner {
+    function safeMint(address to) external onlyOwner {
         uint256 tokenId = _nextTokenId++;
+        TokenData memory tokenData = _tokenData[tokenId];
+
+        if (bytes(tokenData.imageUrl).length == 0) {
+            tokenData.imageUrl = _defaultImageUrl;
+        }
+
+        _safeMint(to, tokenId);
+    }
+
+    function mintWithMetaData(
+        address to,
+        string memory description,
+        string memory imageUrl
+    ) external onlyOwner {
+        uint256 tokenId = _nextTokenId++;
+        TokenData memory tokenData = _tokenData[tokenId];
+        tokenData.currentOwner = to;
+        tokenData.description = description;
+        tokenData.imageUrl = imageUrl;
+
+        if (bytes(tokenData.imageUrl).length == 0) {
+            tokenData.imageUrl = _defaultImageUrl;
+        }
+
         _safeMint(to, tokenId);
     }
 
@@ -70,6 +98,7 @@ contract SkyBlue is ERC721, ERC721Enumerable, Ownable, EIP712 {
         address auth
     ) internal override(ERC721, ERC721Enumerable) returns (address) {
         previousOwners[tokenId].push(to);
+        _tokenData[tokenId].currentOwner = to;
         return super._update(to, tokenId, auth);
     }
 
@@ -86,12 +115,17 @@ contract SkyBlue is ERC721, ERC721Enumerable, Ownable, EIP712 {
         // return super.tokenURI(tokenId);
         TokenData memory tokenData = _tokenData[tokenId];
 
+        uint256 totalPoints = getTotalPoint(tokenId);
+
         bytes memory attributes = abi.encodePacked(
             '{"trait_type": "ID", "value": "',
             tokenId,
             '"},',
             '{"trait_type": "name", "value": "',
             "SkyBlueNFT",
+            '"}',
+            '{"trait_type": "points", "value": "',
+            totalPoints,
             '"}'
         );
 
@@ -110,7 +144,13 @@ contract SkyBlue is ERC721, ERC721Enumerable, Ownable, EIP712 {
             attributes,
             "]}"
         );
-        return string(metadata);
+        return
+            string(
+                abi.encodePacked(
+                    "data:application/json;base64,",
+                    Base64.encode(metadata)
+                )
+            );
     }
 
     function supportsInterface(

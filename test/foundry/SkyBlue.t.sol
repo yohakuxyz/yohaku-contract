@@ -32,9 +32,9 @@ contract SkyBlueTest is Test {
         mintSkyblue(alice);
         assertEq(skyblue.getTotalPoint(0), 0);
 
-        mockERC721.safeMint(alice);
-        mockERC721.safeMint(alice);
-        mockERC721.safeMint(alice);
+        mintMockERC721(alice);
+        mintMockERC721(alice);
+        mintMockERC721(alice);
         assertEq(mockERC721.balanceOf(alice), 3);
         assertEq(skyblue.getTotalPoint(0), 3);
 
@@ -43,8 +43,8 @@ contract SkyBlueTest is Test {
         skyblue.safeTransferFrom(alice, bob, 0);
 
         assertEq(skyblue.getTotalPoint(0), 3);
-        mockERC721.safeMint(bob);
-        mockERC721.safeMint(bob);
+        mintMockERC721(bob);
+        mintMockERC721(bob);
 
         assertEq(skyblue.getTotalPoint(0), 5);
 
@@ -78,6 +78,12 @@ contract SkyBlueTest is Test {
     function mintSkyblue(address to) public {
         vm.startPrank(owner);
         skyblue.safeMint(to);
+        vm.stopPrank();
+    }
+
+    function mintMockERC721(address to) public {
+        vm.startPrank(owner);
+        mockERC721.safeMint(to, "test");
         vm.stopPrank();
     }
 
