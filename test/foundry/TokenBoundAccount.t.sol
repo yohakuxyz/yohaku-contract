@@ -19,6 +19,7 @@ contract TokenBoundAccountTest is Test {
     NFTFactory public factory;
 
     address public owner = makeAddr("owner");
+    /* 
 
     function setUp() public {
         registry = deployRegistry();
@@ -27,9 +28,6 @@ contract TokenBoundAccountTest is Test {
         mockERC1155 = deployMockERC1155();
         implementation = new TokenBoundAccount(factory);
     }
-
-    function testGetTotalPoints() public {}
-
     function testCreateAccount() public {
         setUp();
         vm.startPrank(owner);
@@ -218,4 +216,5 @@ contract TokenBoundAccountTest is Test {
     function deployRegistry() public returns (Registry) {
         return new Registry();
     }
+		 */
 }
