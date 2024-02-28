@@ -3,6 +3,8 @@ pragma solidity ^0.8.20;
 
 import "forge-std/Test.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+import "@openzeppelin/contracts/utils/Base64.sol";
+
 import "../../contracts/MockNFT.sol";
 import "../../contracts/Registry.sol";
 import "../../contracts/SkyBlue.sol";
@@ -25,6 +27,12 @@ contract SkyBlueTest is Test {
         mockERC721 = deployMockERC721();
         mockERC1155 = deployMockERC1155();
         skyblue = new SkyBlue(owner, "", factory);
+    }
+
+    function testTokenURI() public {
+        mintSkyblue(alice);
+        mintSkyblue(alice);
+        console.log(skyblue.tokenURI(1));
     }
 
     function testgetTotalPoints() public {

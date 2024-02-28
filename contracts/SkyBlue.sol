@@ -10,6 +10,7 @@ import "@openzeppelin/contracts/utils/cryptography/EIP712.sol";
 import "@openzeppelin/contracts/utils/Base64.sol";
 import "./NFTFactory.sol";
 
+// TODO: should manage permission
 contract SkyBlue is ERC721, ERC721Enumerable, Ownable {
     uint256 private _nextTokenId;
     string private _defaultImageUrl;
@@ -33,26 +34,10 @@ contract SkyBlue is ERC721, ERC721Enumerable, Ownable {
         nftFactory = _factory;
     }
 
-    function getOwners(uint256 tokenId) public view returns (address[] memory) {
-        return previousOwners[tokenId];
-    }
-
-    // get the total points of all the NFTs owned by the account including the previous owners
-    function getTotalPoint(uint256 tokenId) public view returns (uint256) {
-        uint256 totalPoints = 0;
-        for (uint256 i = 0; i < previousOwners[tokenId].length; i++) {
-            totalPoints += nftFactory.getTotalPoints(
-                previousOwners[tokenId][i]
-            );
-        }
-        return totalPoints;
-    }
-
     function setDefaultImageUrl(string memory defaultImageUrl) public {
         _defaultImageUrl = defaultImageUrl;
     }
 
-    // TODO: should manage permission
     function setImageURL(
         uint256 tokenId,
         string memory imageUrl
@@ -60,7 +45,6 @@ contract SkyBlue is ERC721, ERC721Enumerable, Ownable {
         _tokenData[tokenId].imageUrl = imageUrl;
     }
 
-    // The following functions are overrides required.
     function safeMint(address to) external onlyOwner {
         uint256 tokenId = _nextTokenId++;
         TokenData memory tokenData = _tokenData[tokenId];
@@ -88,6 +72,21 @@ contract SkyBlue is ERC721, ERC721Enumerable, Ownable {
         }
 
         _safeMint(to, tokenId);
+    }
+
+    function getOwners(uint256 tokenId) public view returns (address[] memory) {
+        return previousOwners[tokenId];
+    }
+
+    // get the total points of all the NFTs owned by the account including the previous owners
+    function getTotalPoint(uint256 tokenId) public view returns (uint256) {
+        uint256 totalPoints = 0;
+        for (uint256 i = 0; i < previousOwners[tokenId].length; i++) {
+            totalPoints += nftFactory.getTotalPoints(
+                previousOwners[tokenId][i]
+            );
+        }
+        return totalPoints;
     }
 
     // The following functions are overrides required by Solidity.
