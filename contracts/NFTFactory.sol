@@ -14,32 +14,35 @@ contract NFTFactory {
 
     event NFTCreated(address nftAddress);
 
-    function createERC721(uint8 _points) public returns (address) {
+    function createERC721(uint8 _points) public returns (MockERC721) {
         MockERC721 nft = new MockERC721(_points);
         erc721s.push(nft);
         emit NFTCreated(address(nft));
-        return address(nft);
+        return nft;
     }
 
-    function createERC1155(uint8 _points) public returns (address) {
+    function createERC1155(uint8 _points) public returns (MockERC1155) {
         MockERC1155 nft = new MockERC1155(_points);
         erc1155s.push(nft);
         emit NFTCreated(address(nft));
-        return address(nft);
+        return nft;
     }
 
-    function getTotalPoints(address _addr) public view returns (uint8) {
-        uint8 totalPoints = 0;
+    function getTotalPoints(address _addr) public view returns (uint256) {
+        uint256 totalPoints = 0;
         for (uint8 i = 0; i < erc721s.length; i++) {
             erc721s[i].balanceOf(_addr) > 0
-                ? totalPoints += erc721s[i].getPoinst()
+                ? totalPoints += (erc721s[i].getPoinst() *
+                    erc721s[i].balanceOf(_addr))
                 : 0;
         }
         for (uint8 i = 0; i < erc1155s.length; i++) {
             uint256 _totalSupply = erc1155s[i].totalSupply();
             for (uint256 j = 0; j < _totalSupply; j++) {
                 erc1155s[i].balanceOf(_addr, j) > 0
-                    ? totalPoints += erc1155s[i].getPoinst()
+                    ? totalPoints +=
+                        erc1155s[i].getPoinst() *
+                        erc1155s[i].balanceOf(_addr, j)
                     : 0;
             }
         }

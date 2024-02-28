@@ -13,10 +13,10 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 contract MockERC721 is ERC721 {
     uint256 private _nextTokenId;
 
-    uint8 public _points;
+    uint256 public points;
 
-    constructor(uint8 points_) ERC721("Mock", "MOCK") {
-        _points = points_;
+    constructor(uint256 points_) ERC721("Mock", "MOCK") {
+        points = points_;
     }
 
     function safeMint(address to) public {
@@ -24,17 +24,17 @@ contract MockERC721 is ERC721 {
         _safeMint(to, tokenId);
     }
 
-    function getPoinst() public view returns (uint8) {
-        return _points;
+    function getPoinst() public view returns (uint256) {
+        return points;
     }
 }
 
 contract MockERC1155 is ERC1155, ERC1155Supply {
     // Ideally, this should be a mapping from token ID to points
-    uint8 public _points;
+    uint256 public points;
 
-    constructor(uint8 points_) ERC1155("") {
-        _points = points_;
+    constructor(uint256 points_) ERC1155("") {
+        points = points_;
     }
 
     function mint(
@@ -55,8 +55,8 @@ contract MockERC1155 is ERC1155, ERC1155Supply {
         _mintBatch(to, ids, amounts, data);
     }
 
-    function getPoinst() public view returns (uint8) {
-        return _points;
+    function getPoinst() public view returns (uint256) {
+        return points;
     }
 
     // The following functions are overrides required by Solidity.

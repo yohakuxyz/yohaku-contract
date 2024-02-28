@@ -24,7 +24,7 @@ contract TokenBoundAccount is
     IERC721Receiver,
     IERC1155Receiver
 {
-    constructor(nftFactory _factory) Ownable(msg.sender) {
+    constructor(NFTFactory _factory) Ownable(msg.sender) {
         owners.push(msg.sender);
         nftFactory = _factory;
     }
@@ -37,9 +37,9 @@ contract TokenBoundAccount is
     NFTFactory public nftFactory;
 
     // get the total points of all the NFTs owned by the account including the previous owners
-    function getTotalPoint() public view returns (uint8) {
-        uint8 totalPoints = 0;
-        for (uint8 i = 0; i < owners.length; i++) {
+    function getTotalPoint() public view returns (uint256) {
+        uint256 totalPoints = 0;
+        for (uint256 i = 0; i < owners.length; i++) {
             totalPoints += nftFactory.getTotalPoints(owners[i]);
         }
         return totalPoints;
