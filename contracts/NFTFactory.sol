@@ -2,7 +2,6 @@
 pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Burnable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
@@ -10,43 +9,45 @@ import "./MockNFT.sol";
 
 contract NFTFactory {
     MockERC721[] public erc721s;
-    MockERC1155[] public erc1155s;
 
     event NFTCreated(address nftAddress);
 
-    function createERC721(uint8 _points) public returns (MockERC721) {
-        MockERC721 nft = new MockERC721(_points, "MockNFT", "MOCK");
+    // owner => tokenAddress => tokenIds
+    mapping(address => mapping(address => uint256[])) private _ownedTokens;
+
+    function createERC721(
+        string calldata name,
+        string calldata symbol,
+        uint8 _basePoints
+    ) public returns (MockERC721) {
+        MockERC721 nft = new MockERC721(
+            name,
+            symbol,
+            _basePoints,
+            NFTFactory(address(this))
+        );
         erc721s.push(nft);
         emit NFTCreated(address(nft));
         return nft;
     }
 
-    function createERC1155(uint8 _points) public returns (MockERC1155) {
-        MockERC1155 nft = new MockERC1155(_points);
-        erc1155s.push(nft);
-        emit NFTCreated(address(nft));
-        return nft;
-    }
+    function getERC721Points(address _owner) public view returns (uint8) {
+        uint8 points;
 
-    function getTotalPoints(address _addr) public view returns (uint256) {
-        uint256 totalPoints = 0;
-        for (uint8 i = 0; i < erc721s.length; i++) {
-            erc721s[i].balanceOf(_addr) > 0
-                ? totalPoints += (erc721s[i].getPoints() *
-                    erc721s[i].balanceOf(_addr))
-                : 0;
-        }
-        for (uint8 i = 0; i < erc1155s.length; i++) {
-            uint256 _totalSupply = erc1155s[i].totalSupply();
-            for (uint256 j = 0; j < _totalSupply; j++) {
-                erc1155s[i].balanceOf(_addr, j) > 0
-                    ? totalPoints +=
-                        erc1155s[i].getPoints() *
-                        erc1155s[i].balanceOf(_addr, j)
-                    : 0;
+        for (uint256 i; i < erc721s.length; i++) {
+            if (erc721s[i].balanceOf(_owner) > 0) {
+                points += erc721s[i].getPoints();
             }
         }
+        return points;
+    }
 
+    function getTotalPoints(address _addr) public view returns (uint8) {
+        uint8 totalPoints = getERC721Points(_addr);
         return totalPoints;
+    }
+
+    function getCreatedERC721s() public view returns (MockERC721[] memory) {
+        return erc721s;
     }
 }

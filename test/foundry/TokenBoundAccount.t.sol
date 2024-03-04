@@ -6,14 +6,13 @@ import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import {IERC6551Account} from "erc6551/interfaces/IERC6551Account.sol";
 import {IERC6551Executable} from "erc6551/interfaces/IERC6551Executable.sol";
 
-import {MockERC721, MockERC1155} from "../../contracts/MockNFT.sol";
+import {MockERC721} from "../../contracts/MockNFT.sol";
 import {Registry} from "../../contracts/Registry.sol";
 import {TokenBoundAccount} from "../../contracts/TokenBoundAccount.sol";
 import "../../contracts/NFTFactory.sol";
 
 contract TokenBoundAccountTest is Test {
     MockERC721 public mockERC721;
-    MockERC1155 public mockERC1155;
     TokenBoundAccount public implementation;
     Registry public registry;
     NFTFactory public factory;

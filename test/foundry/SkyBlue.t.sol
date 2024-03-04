@@ -12,7 +12,6 @@ import "../../contracts/NFTFactory.sol";
 
 contract SkyBlueTest is Test {
     MockERC721 public mockERC721;
-    MockERC1155 public mockERC1155;
     SkyBlue public skyblue;
     Registry public registry;
     NFTFactory public factory;
@@ -25,8 +24,19 @@ contract SkyBlueTest is Test {
     function setUp() public {
         factory = deployFactory();
         mockERC721 = deployMockERC721();
-        mockERC1155 = deployMockERC1155();
+
         skyblue = new SkyBlue(owner, "", factory);
+    }
+
+    function testGetBalanceOf() public {
+        mintSkyblue(alice);
+        assertEq(skyblue.getTotalPoint(0), 0);
+
+        mintMockERC721(alice);
+        mintMockERC721(bob);
+        mintMockERC721(alice);
+        mockERC721.balanceOf(alice);
+        console.log(mockERC721.balanceOf(alice));
     }
 
     function testTokenURI() public {
@@ -55,12 +65,6 @@ contract SkyBlueTest is Test {
         mintMockERC721(bob);
 
         assertEq(skyblue.getTotalPoint(0), 5);
-
-        // Test for ERC1155
-        mockERC1155.mint(bob, 0, 1, "");
-        mockERC1155.mint(bob, 1, 1, "");
-        assertEq(mockERC1155.balanceOf(bob, 0), 1);
-        assertEq(skyblue.getTotalPoint(0), 7);
     }
 
     function testTransferOwnership() public {
@@ -101,12 +105,7 @@ contract SkyBlueTest is Test {
     }
 
     function deployMockERC721() public returns (MockERC721) {
-        MockERC721 nft = factory.createERC721(1);
-        return nft;
-    }
-
-    function deployMockERC1155() public returns (MockERC1155) {
-        MockERC1155 nft = factory.createERC1155(1);
+        MockERC721 nft = factory.createERC721("MOCK", "MOCK", 10);
         return nft;
     }
 }

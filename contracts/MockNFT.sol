@@ -5,31 +5,34 @@ import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Burnable.sol";
-import "@openzeppelin/contracts/token/ERC1155/extensions/ERC1155Supply.sol";
+import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Base64.sol";
+import "./NFTFactory.sol";
 
 // Mock ERC721 contract for testing purposes
 // https://wizard.openzeppelin.com
-contract MockERC721 is ERC721 {
-    uint256 private _nextTokenId;
-    string private _defaultImageUrl;
-
-    uint256 public points;
-
+contract MockERC721 is ERC721, ERC721Enumerable {
     struct TokenData {
         address owner;
         string description;
         string imageUrl;
     }
+    uint8 public basePoints;
+    uint256 private _nextTokenId;
+    string private _defaultImageUrl;
+    NFTFactory public nftFactory;
+
     mapping(uint256 => TokenData) private _tokenData;
 
     constructor(
-        uint256 points_,
         string memory name,
-        string memory symbol
+        string memory symbol,
+        uint8 _basePoints,
+        NFTFactory _nftFactory
     ) ERC721(name, symbol) {
-        points = points_;
+        nftFactory = _nftFactory;
+        basePoints = _basePoints;
     }
 
     function safeMint(address to, string memory description) public {
@@ -44,8 +47,27 @@ contract MockERC721 is ERC721 {
         _safeMint(to, tokenId);
     }
 
-    function getPoints() public view returns (uint256) {
-        return points;
+    function updatePoints(uint8 newPoints) public {
+        basePoints = newPoints;
+    }
+
+    function getTokenData(
+        uint256 tokenId
+    )
+        public
+        view
+        returns (
+            address owner,
+            string memory description,
+            string memory imageUrl
+        )
+    {
+        TokenData memory tokenData = _tokenData[tokenId];
+        return (tokenData.owner, tokenData.description, tokenData.imageUrl);
+    }
+
+    function getPoints() public view returns (uint8) {
+        return basePoints;
     }
 
     function tokenURI(
@@ -64,7 +86,7 @@ contract MockERC721 is ERC721 {
             tokenData.description,
             '"}',
             '{"trait_type": "points", "value": "',
-            points,
+            basePoints,
             '"}'
         );
         string memory imageUrl = bytes(tokenData.imageUrl).length > 0
@@ -90,46 +112,27 @@ contract MockERC721 is ERC721 {
                 )
             );
     }
-}
-
-contract MockERC1155 is ERC1155, ERC1155Supply {
-    // Ideally, this should be a mapping from token ID to points
-    uint256 public points;
-
-    constructor(uint256 points_) ERC1155("") {
-        points = points_;
-    }
-
-    function mint(
-        address account,
-        uint256 id,
-        uint256 amount,
-        bytes memory data
-    ) public {
-        _mint(account, id, amount, data);
-    }
-
-    function mintBatch(
-        address to,
-        uint256[] memory ids,
-        uint256[] memory amounts,
-        bytes memory data
-    ) public {
-        _mintBatch(to, ids, amounts, data);
-    }
-
-    function getPoints() public view returns (uint256) {
-        return points;
-    }
 
     // The following functions are overrides required by Solidity.
 
     function _update(
-        address from,
         address to,
-        uint256[] memory ids,
-        uint256[] memory values
-    ) internal override(ERC1155, ERC1155Supply) {
-        super._update(from, to, ids, values);
+        uint256 tokenId,
+        address auth
+    ) internal override(ERC721, ERC721Enumerable) returns (address) {
+        return super._update(to, tokenId, auth);
+    }
+
+    function _increaseBalance(
+        address account,
+        uint128 value
+    ) internal override(ERC721, ERC721Enumerable) {
+        super._increaseBalance(account, value);
+    }
+
+    function supportsInterface(
+        bytes4 interfaceId
+    ) public view override(ERC721, ERC721Enumerable) returns (bool) {
+        return super.supportsInterface(interfaceId);
     }
 }
