@@ -43,13 +43,16 @@ contract NFTFactory {
     }
 
     function getContributions(
-        address _owner,
-        uint256 _tokenId
-    ) external view returns (TokenData[] memory) {
-        TokenData[] memory tokenData = new TokenData[](erc721s.length);
-        for (uint256 i; i < erc721s.length; i++) {
-            if (erc721s[i].balanceOf(_owner) > 0) {
-                tokenData[i] = erc721s[i].getTokenData(_tokenId);
+        address[] memory _owners
+    ) external view returns (string[] memory) {
+        // TODO: should handle the length of the array
+        string[] memory tokenData = new string[](erc721s.length);
+        for (uint256 n; n < _owners.length; n++) {
+            for (uint256 i; i < erc721s.length; i++) {
+                if (erc721s[i].balanceOf(_owners[n]) > 0) {
+                    uint256 tokenId = erc721s[i].getOwnedToken(_owners[n]);
+                    tokenData[i] = erc721s[i].getTokenData(tokenId).description;
+                }
             }
         }
         return tokenData;

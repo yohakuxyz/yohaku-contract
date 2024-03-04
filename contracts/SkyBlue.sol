@@ -111,6 +111,14 @@ contract SkyBlue is ERC721, ERC721Enumerable, Ownable {
 
         uint256 totalPoints = getTotalPoint(tokenId);
 
+        string[] memory contributions;
+
+        if (previousOwners[tokenId].length > 0) {
+            contributions = nftFactory.getContributions(
+                previousOwners[tokenId]
+            );
+        }
+
         bytes memory attributes = abi.encodePacked(
             '{"trait_type": "ID", "value": "',
             tokenId,

@@ -26,6 +26,8 @@ contract MockERC721 is ERC721, ERC721Enumerable {
 
     mapping(uint256 => TokenData) private _tokenData;
 
+    mapping(address => uint256) public userOwnedToken;
+
     constructor(
         string memory name,
         string memory symbol,
@@ -36,7 +38,14 @@ contract MockERC721 is ERC721, ERC721Enumerable {
         basePoints = _basePoints;
     }
 
+    function getOwnedToken(address _owner) public view returns (uint256) {
+        return userOwnedToken[_owner];
+    }
+
     function safeMint(address to, string memory description) public {
+        // check if the recipient already has a token
+        require(balanceOf(to) == 0, "Recipient already has a token");
+
         uint256 tokenId = _nextTokenId++;
         TokenData memory tokenData = _tokenData[tokenId];
         tokenData.owner = to;
