@@ -42,6 +42,19 @@ contract NFTFactory {
         return points;
     }
 
+    function getContributions(
+        address _owner,
+        uint256 _tokenId
+    ) external view returns (TokenData[] memory) {
+        TokenData[] memory tokenData = new TokenData[](erc721s.length);
+        for (uint256 i; i < erc721s.length; i++) {
+            if (erc721s[i].balanceOf(_owner) > 0) {
+                tokenData[i] = erc721s[i].getTokenData(_tokenId);
+            }
+        }
+        return tokenData;
+    }
+
     function getTotalPoints(address _addr) public view returns (uint8) {
         uint8 totalPoints = getERC721Points(_addr);
         return totalPoints;

@@ -15,12 +15,7 @@ contract SkyBlue is ERC721, ERC721Enumerable, Ownable {
     uint256 private _nextTokenId;
     string private _defaultImageUrl;
     NFTFactory public nftFactory;
-    // TODO: manage metadata
-    struct TokenData {
-        address currentOwner;
-        string description;
-        string imageUrl;
-    }
+
     mapping(uint256 => TokenData) private _tokenData;
 
     mapping(uint256 => address[]) public previousOwners;
@@ -63,7 +58,7 @@ contract SkyBlue is ERC721, ERC721Enumerable, Ownable {
     ) external onlyOwner {
         uint256 tokenId = _nextTokenId++;
         TokenData memory tokenData = _tokenData[tokenId];
-        tokenData.currentOwner = to;
+        tokenData.owner = to;
         tokenData.description = description;
         tokenData.imageUrl = imageUrl;
 
@@ -97,7 +92,7 @@ contract SkyBlue is ERC721, ERC721Enumerable, Ownable {
         address auth
     ) internal override(ERC721, ERC721Enumerable) returns (address) {
         previousOwners[tokenId].push(to);
-        _tokenData[tokenId].currentOwner = to;
+        _tokenData[tokenId].owner = to;
         return super._update(to, tokenId, auth);
     }
 

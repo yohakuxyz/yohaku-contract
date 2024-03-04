@@ -10,14 +10,15 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Base64.sol";
 import "./NFTFactory.sol";
 
+struct TokenData {
+    address owner;
+    string description;
+    string imageUrl;
+}
+
 // Mock ERC721 contract for testing purposes
 // https://wizard.openzeppelin.com
 contract MockERC721 is ERC721, ERC721Enumerable {
-    struct TokenData {
-        address owner;
-        string description;
-        string imageUrl;
-    }
     uint8 public basePoints;
     uint256 private _nextTokenId;
     string private _defaultImageUrl;
@@ -53,17 +54,9 @@ contract MockERC721 is ERC721, ERC721Enumerable {
 
     function getTokenData(
         uint256 tokenId
-    )
-        public
-        view
-        returns (
-            address owner,
-            string memory description,
-            string memory imageUrl
-        )
-    {
-        TokenData memory tokenData = _tokenData[tokenId];
-        return (tokenData.owner, tokenData.description, tokenData.imageUrl);
+    ) public view returns (TokenData memory tokenData) {
+        tokenData = _tokenData[tokenId];
+        return tokenData;
     }
 
     function getPoints() public view returns (uint8) {
