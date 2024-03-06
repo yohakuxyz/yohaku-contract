@@ -14,18 +14,16 @@ import "./NFTFactory.sol";
 contract SkyBlue is ERC721, ERC721Enumerable, Ownable {
     uint256 private _nextTokenId;
     string private _defaultImageUrl;
-    NFTFactory public nftFactory;
 
     mapping(uint256 => TokenData) private _tokenData;
 
     mapping(uint256 => address[]) public previousOwners;
 
-    constructor(address initialOwner, string memory defaultImageUrl, NFTFactory _factory)
+    constructor(address initialOwner, string memory defaultImageUrl)
         ERC721("SkyBlueNFT", "SKB")
         Ownable(initialOwner)
     {
         _defaultImageUrl = defaultImageUrl;
-        nftFactory = _factory;
     }
 
     function setDefaultImageUrl(string memory defaultImageUrl) public {
@@ -65,15 +63,6 @@ contract SkyBlue is ERC721, ERC721Enumerable, Ownable {
         return previousOwners[tokenId];
     }
 
-    // get the total points of all the NFTs owned by the account including the previous owners
-    function getTotalPoint(uint256 tokenId) public view returns (uint256) {
-        uint256 totalPoints = 0;
-        for (uint256 i = 0; i < previousOwners[tokenId].length; i++) {
-            totalPoints += nftFactory.getTotalPoints(previousOwners[tokenId][i]);
-        }
-        return totalPoints;
-    }
-
     // The following functions are overrides required by Solidity.
 
     function _update(address to, uint256 tokenId, address auth)
@@ -94,24 +83,8 @@ contract SkyBlue is ERC721, ERC721Enumerable, Ownable {
         // return super.tokenURI(tokenId);
         TokenData memory tokenData = _tokenData[tokenId];
 
-        uint256 totalPoints = getTotalPoint(tokenId);
-
-        string[] memory contributions;
-
-        if (previousOwners[tokenId].length > 0) {
-            contributions = nftFactory.getContributions(previousOwners[tokenId]);
-        }
-
         bytes memory attributes = abi.encodePacked(
-            '{"trait_type": "ID", "value": "',
-            tokenId,
-            '"},',
-            '{"trait_type": "name", "value": "',
-            "SkyBlueNFT",
-            '"}',
-            '{"trait_type": "points", "value": "',
-            totalPoints,
-            '"}'
+            '{"trait_type": "ID", "value": "', tokenId, '"},', '{"trait_type": "name", "value": "', "SkyBlueNFT", '"}'
         );
 
         string memory imageUrl = bytes(tokenData.imageUrl).length > 0 ? tokenData.imageUrl : _defaultImageUrl;

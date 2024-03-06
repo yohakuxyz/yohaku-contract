@@ -13,8 +13,7 @@ contract DeploySkyBlueNFT is Script {
     address public owner = msg.sender;
 
     function run() external {
-        NFTFactory nftFactory = new NFTFactory();
-        SkyBlue skyBlue = new SkyBlue(owner, "https://example.com", nftFactory);
+        SkyBlue skyBlue = new SkyBlue(owner, "https://example.com");
         console.log("SkyBlue address: ", address(skyBlue));
     }
 }

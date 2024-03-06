@@ -25,46 +25,13 @@ contract SkyBlueTest is Test {
         factory = deployFactory();
         mockERC721 = deployMockERC721();
 
-        skyblue = new SkyBlue(owner, "", factory);
-    }
-
-    function testGetBalanceOf() public {
-        mintSkyblue(alice);
-        assertEq(skyblue.getTotalPoint(0), 0);
-
-        mintMockERC721(alice);
-        mintMockERC721(bob);
-        mintMockERC721(alice);
-        mockERC721.balanceOf(alice);
-        console.log(mockERC721.balanceOf(alice));
+        skyblue = new SkyBlue(owner, "");
     }
 
     function testTokenURI() public {
         mintSkyblue(alice);
         mintSkyblue(alice);
         console.log(skyblue.tokenURI(1));
-    }
-
-    function testgetTotalPoints() public {
-        // Test for ERC721
-        mintSkyblue(alice);
-        assertEq(skyblue.getTotalPoint(0), 0);
-
-        mintMockERC721(alice);
-        mintMockERC721(alice);
-        mintMockERC721(alice);
-        assertEq(mockERC721.balanceOf(alice), 3);
-        assertEq(skyblue.getTotalPoint(0), 3);
-
-        vm.prank(alice);
-        skyblue.approve(address(this), 0);
-        skyblue.safeTransferFrom(alice, bob, 0);
-
-        assertEq(skyblue.getTotalPoint(0), 3);
-        mintMockERC721(bob);
-        mintMockERC721(bob);
-
-        assertEq(skyblue.getTotalPoint(0), 5);
     }
 
     function testTransferOwnership() public {
