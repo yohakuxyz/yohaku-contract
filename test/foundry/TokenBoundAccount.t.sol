@@ -23,6 +23,7 @@ contract TokenBoundAccountTest is Test {
     AttesterResolver public attesterResolver;
     IEAS public eas;
     ISchemaRegistry public schemaRegistry;
+    bytes32 public schemaUID;
 
     address public owner = makeAddr("owner");
     address public minter = makeAddr("minter");
@@ -31,11 +32,14 @@ contract TokenBoundAccountTest is Test {
 
     function setUp() public {
         configureChain();
+        vm.startPrank(owner);
         registry = deployRegistry();
         factory = deployFactory();
         mockERC721 = deployMockERC721();
+        schemaUID = registerSchema();
         attesterResolver = deploySchemaResolver();
         implementation = new TokenBoundAccount();
+        vm.stopPrank();
     }
 
     function testCreateAccount() public {
@@ -63,10 +67,8 @@ contract TokenBoundAccountTest is Test {
     }
 
     function testAttest() public {
-        bytes32 uid = registerSchema();
         address account = createTBA();
         vm.startPrank(minter);
-
         // "address TokenBoundAccount,address CurrentOwner,address TokenAddress,uint256 tokenId,uint8 Score,string Description";
         bytes memory _data = abi.encode(account, owner, mockERC721, 0, 5, "test");
 
@@ -79,7 +81,7 @@ contract TokenBoundAccountTest is Test {
             value: 0
         });
 
-        AttestationRequest memory request = AttestationRequest({schema: uid, data: attestationRequestData});
+        AttestationRequest memory request = AttestationRequest({schema: schemaUID, data: attestationRequestData});
         bytes32 attestationUID = eas.attest(request);
         emit log_bytes32(attestationUID);
 
@@ -99,6 +101,29 @@ contract TokenBoundAccountTest is Test {
         assertEq(tokenId, 0);
         assertEq(_score, 5);
         assertEq(_description, "test");
+    }
+
+    function testRevertResolver() public {
+        bytes32 uid = registerSchema();
+        address account = createTBA();
+
+        vm.startPrank(owner);
+
+        bytes memory _data = abi.encode(account, owner, mockERC721, 0, 5, "test");
+
+        AttestationRequestData memory attestationRequestData = AttestationRequestData({
+            recipient: owner,
+            expirationTime: uint64(block.timestamp + 100),
+            revocable: true,
+            refUID: 0x0,
+            data: _data,
+            value: 0
+        });
+
+        AttestationRequest memory request = AttestationRequest({schema: uid, data: attestationRequestData});
+        // eas.attest(request);
+
+        // vm.expectRevert();
     }
 
     function testSendTransaction() external {
@@ -144,6 +169,27 @@ contract TokenBoundAccountTest is Test {
         );
         assertTrue(account != address(0));
         return account;
+    }
+
+    function createNewAttestation(address _account, address _recipient, address _owner) public returns (bytes32) {
+        // "address TokenBoundAccount,address CurrentOwner,address TokenAddress,uint256 tokenId,uint8 Score,string Description";
+        bytes memory _data = abi.encode(_account, _owner, mockERC721, 0, 5, "test");
+
+        AttestationRequestData memory attestationRequestData = AttestationRequestData({
+            recipient: _recipient,
+            expirationTime: uint64(block.timestamp + 100),
+            revocable: true,
+            refUID: 0x0,
+            data: _data,
+            value: 0
+        });
+
+        AttestationRequest memory request = AttestationRequest({schema: schemaUID, data: attestationRequestData});
+        vm.startPrank(owner);
+        bytes32 attestationUID = eas.attest(request);
+
+        vm.stopPrank();
+        return attestationUID;
     }
 
     function deployFactory() public returns (NFTFactory) {
