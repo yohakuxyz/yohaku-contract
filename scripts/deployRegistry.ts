@@ -1,24 +1,19 @@
 import { ethers, network, run } from "hardhat";
 
-const dev2: string = "0x06aa005386f53ba7b980c61e0d067cabc7602a62";
-const imageURL: string =
-  "ipfs://bafkreidp6xswfzex5mr6akr7azn3e4rza57ukuxyo2tq6slymliaeuenoi";
-
 async function main() {
-  const SkyBlueFactory = await ethers.getContractFactory("SkyBlue");
-  const skyblue = await SkyBlueFactory.deploy(dev2, imageURL);
+  const RegistryFactory = await ethers.getContractFactory("Registry");
+  const registry = await RegistryFactory.deploy();
 
-  await skyblue.waitForDeployment();
-  console.log(`SkyBlue deployed to ${skyblue.target} on ${network.name}`);
+  await registry.waitForDeployment();
+  console.log(`Registry deployed to ${registry.target} on ${network.name}`);
 
-  await verifyContract(skyblue.target, [dev2, imageURL]);
+  await verifyContract(registry.target);
 }
 
-async function verifyContract(address: string, args: any[]) {
+async function verifyContract(address: string) {
   console.log(`Verifying Contract on Etherscan...`);
   await run(`verify:verify`, {
     address: address,
-    constructorArguments: args,
   });
   console.log(`Contract verified on Etherscan`);
 }

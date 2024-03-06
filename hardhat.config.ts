@@ -3,6 +3,7 @@ dotenv.config();
 import { HardhatUserConfig } from "hardhat/config";
 import "@nomicfoundation/hardhat-toolbox";
 import "@nomicfoundation/hardhat-foundry";
+import "@nomicfoundation/hardhat-verify";
 const gasLimit = 60000000;
 
 const config: HardhatUserConfig = {
@@ -27,6 +28,7 @@ const config: HardhatUserConfig = {
       polygonMumbai: process.env.API_KEY_POLYGONSCAN!,
     },
   },
+
 };
 
 export default config;
