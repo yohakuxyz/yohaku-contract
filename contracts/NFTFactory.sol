@@ -15,17 +15,11 @@ contract NFTFactory {
     // owner => tokenAddress => tokenIds
     mapping(address => mapping(address => uint256[])) private _ownedTokens;
 
-    function createERC721(
-        string calldata name,
-        string calldata symbol,
-        uint8 _basePoints
-    ) public returns (MockERC721) {
-        MockERC721 nft = new MockERC721(
-            name,
-            symbol,
-            _basePoints,
-            NFTFactory(address(this))
-        );
+    function createERC721(string calldata name, string calldata symbol, uint8 _basePoints)
+        public
+        returns (MockERC721)
+    {
+        MockERC721 nft = new MockERC721(name, symbol, _basePoints, NFTFactory(address(this)));
         erc721s.push(nft);
         emit NFTCreated(address(nft));
         return nft;
@@ -42,9 +36,7 @@ contract NFTFactory {
         return points;
     }
 
-    function getContributions(
-        address[] memory _owners
-    ) external view returns (string[] memory) {
+    function getContributions(address[] memory _owners) external view returns (string[] memory) {
         // TODO: should handle the length of the array
         string[] memory tokenData = new string[](erc721s.length);
         for (uint256 n; n < _owners.length; n++) {

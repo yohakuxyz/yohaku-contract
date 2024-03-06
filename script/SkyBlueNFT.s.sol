@@ -5,7 +5,6 @@ pragma solidity ^0.8.20;
 import "forge-std/Script.sol";
 import "forge-std/console.sol";
 
-
 import "../contracts/SkyBlue.sol";
 import "../contracts//NFTFactory.sol";
 import "../contracts//MockNFT.sol";

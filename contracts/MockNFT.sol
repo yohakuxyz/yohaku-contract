@@ -28,12 +28,9 @@ contract MockERC721 is ERC721, ERC721Enumerable {
 
     mapping(address => uint256) public userOwnedToken;
 
-    constructor(
-        string memory name,
-        string memory symbol,
-        uint8 _basePoints,
-        NFTFactory _nftFactory
-    ) ERC721(name, symbol) {
+    constructor(string memory name, string memory symbol, uint8 _basePoints, NFTFactory _nftFactory)
+        ERC721(name, symbol)
+    {
         nftFactory = _nftFactory;
         basePoints = _basePoints;
     }
@@ -61,9 +58,7 @@ contract MockERC721 is ERC721, ERC721Enumerable {
         basePoints = newPoints;
     }
 
-    function getTokenData(
-        uint256 tokenId
-    ) public view returns (TokenData memory tokenData) {
+    function getTokenData(uint256 tokenId) public view returns (TokenData memory tokenData) {
         tokenData = _tokenData[tokenId];
         return tokenData;
     }
@@ -72,9 +67,7 @@ contract MockERC721 is ERC721, ERC721Enumerable {
         return basePoints;
     }
 
-    function tokenURI(
-        uint256 tokenId
-    ) public view override(ERC721) returns (string memory) {
+    function tokenURI(uint256 tokenId) public view override(ERC721) returns (string memory) {
         TokenData memory tokenData = _tokenData[tokenId];
 
         bytes memory attributes = abi.encodePacked(
@@ -91,9 +84,7 @@ contract MockERC721 is ERC721, ERC721Enumerable {
             basePoints,
             '"}'
         );
-        string memory imageUrl = bytes(tokenData.imageUrl).length > 0
-            ? tokenData.imageUrl
-            : _defaultImageUrl;
+        string memory imageUrl = bytes(tokenData.imageUrl).length > 0 ? tokenData.imageUrl : _defaultImageUrl;
 
         bytes memory metadata = abi.encodePacked(
             '{"name": "',
@@ -106,35 +97,24 @@ contract MockERC721 is ERC721, ERC721Enumerable {
             attributes,
             "]}"
         );
-        return
-            string(
-                abi.encodePacked(
-                    "data:application/json;base64,",
-                    Base64.encode(metadata)
-                )
-            );
+        return string(abi.encodePacked("data:application/json;base64,", Base64.encode(metadata)));
     }
 
     // The following functions are overrides required by Solidity.
 
-    function _update(
-        address to,
-        uint256 tokenId,
-        address auth
-    ) internal override(ERC721, ERC721Enumerable) returns (address) {
+    function _update(address to, uint256 tokenId, address auth)
+        internal
+        override(ERC721, ERC721Enumerable)
+        returns (address)
+    {
         return super._update(to, tokenId, auth);
     }
 
-    function _increaseBalance(
-        address account,
-        uint128 value
-    ) internal override(ERC721, ERC721Enumerable) {
+    function _increaseBalance(address account, uint128 value) internal override(ERC721, ERC721Enumerable) {
         super._increaseBalance(account, value);
     }
 
-    function supportsInterface(
-        bytes4 interfaceId
-    ) public view override(ERC721, ERC721Enumerable) returns (bool) {
+    function supportsInterface(bytes4 interfaceId) public view override(ERC721, ERC721Enumerable) returns (bool) {
         return super.supportsInterface(interfaceId);
     }
 }

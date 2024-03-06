@@ -6,27 +6,38 @@ import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import {IERC6551Account} from "erc6551/interfaces/IERC6551Account.sol";
 import {IERC6551Executable} from "erc6551/interfaces/IERC6551Executable.sol";
 
-import {MockERC721} from "../../contracts/MockNFT.sol";
-import {Registry} from "../../contracts/Registry.sol";
-import {TokenBoundAccount} from "../../contracts/TokenBoundAccount.sol";
+import {IEAS, Attestation, AttestationRequest, AttestationRequestData} from "eas-contracts/IEAS.sol";
+import {ISchemaRegistry} from "eas-contracts/ISchemaRegistry.sol";
+
+import "../../contracts/MockNFT.sol";
+import "../../contracts/Registry.sol";
+import "../../contracts/TokenBoundAccount.sol";
 import "../../contracts/NFTFactory.sol";
+import {AttesterResolver} from "../../contracts/AttesterResolver.sol";
 
 contract TokenBoundAccountTest is Test {
     MockERC721 public mockERC721;
     TokenBoundAccount public implementation;
     Registry public registry;
     NFTFactory public factory;
+    AttesterResolver public attesterResolver;
+    IEAS public eas;
+    ISchemaRegistry public schemaRegistry;
 
     address public owner = makeAddr("owner");
-    /* 
+    address public minter = makeAddr("minter");
+    string schema =
+        "address TokenBoundAccount,address CurrentOwner,address TokenAddress,uint256 tokenId,uint8 Score,string Description";
 
     function setUp() public {
+        configureChain();
         registry = deployRegistry();
         factory = deployFactory();
         mockERC721 = deployMockERC721();
-        mockERC1155 = deployMockERC1155();
-        implementation = new TokenBoundAccount(factory);
+        attesterResolver = deploySchemaResolver();
+        implementation = new TokenBoundAccount();
     }
+
     function testCreateAccount() public {
         setUp();
         vm.startPrank(owner);
@@ -44,129 +55,67 @@ contract TokenBoundAccountTest is Test {
         );
     }
 
+    function testRegisterSchema() public {
+        setUp();
+        vm.startPrank(owner);
+        bytes32 uid = registerSchema();
+        assertEq(schema, schemaRegistry.getSchema(uid).schema);
+    }
+
+    function testAttest() public {
+        bytes32 uid = registerSchema();
+        address account = createTBA();
+        vm.startPrank(minter);
+
+        // "address TokenBoundAccount,address CurrentOwner,address TokenAddress,uint256 tokenId,uint8 Score,string Description";
+        bytes memory _data = abi.encode(account, owner, mockERC721, 0, 5, "test");
+
+        AttestationRequestData memory attestationRequestData = AttestationRequestData({
+            recipient: owner,
+            expirationTime: uint64(block.timestamp + 100),
+            revocable: true,
+            refUID: 0x0,
+            data: _data,
+            value: 0
+        });
+
+        AttestationRequest memory request = AttestationRequest({schema: uid, data: attestationRequestData});
+        bytes32 attestationUID = eas.attest(request);
+        emit log_bytes32(attestationUID);
+
+        bytes memory attestationData = eas.getAttestation(attestationUID).data;
+        (
+            address _tokenBoundAccount,
+            address _currentOwner,
+            address _tokenAddress,
+            uint256 tokenId,
+            uint8 _score,
+            string memory _description
+        ) = abi.decode(attestationData, (address, address, address, uint256, uint8, string));
+        assertEq(attestationData, _data);
+        assertEq(_tokenBoundAccount, account);
+        assertEq(_currentOwner, owner);
+        assertEq(_tokenAddress, address(mockERC721));
+        assertEq(tokenId, 0);
+        assertEq(_score, 5);
+        assertEq(_description, "test");
+    }
+
     function testSendTransaction() external {
         vm.startPrank(owner);
         address recipient = makeAddr("recipient");
         address account = createTBA();
 
         IERC6551Account accountInstance = IERC6551Account(payable(account));
-        IERC6551Executable executableAccountInstance = IERC6551Executable(
-            account
-        );
+        IERC6551Executable executableAccountInstance = IERC6551Executable(account);
         assertEq(TokenBoundAccount(payable(account)).owner(), owner);
 
-        assertEq(
-            accountInstance.isValidSigner(owner, ""),
-            IERC6551Account.isValidSigner.selector
-        );
+        assertEq(accountInstance.isValidSigner(owner, ""), IERC6551Account.isValidSigner.selector);
         vm.deal(account, 1 ether);
         executableAccountInstance.execute(payable(recipient), 0.5 ether, "", 0);
         assertEq(account.balance, 0.5 ether);
         assertEq(recipient.balance, 0.5 ether);
         assertEq(accountInstance.state(), 1);
-    }
-
-    // function testExecuteTransaction() external {
-    //     address account = createTBA();
-    //     address recipient = makeAddr("recipient");
-    //     TokenBoundAccount tba = TokenBoundAccount(payable(account));
-    //     vm.startPrank(owner);
-
-    //     tba.execute(
-    //         address(mockERC721),
-    //         0 ether,
-    //         abi.encodeWithSignature("safeMint(address)", address(tba)),
-    //         0
-    //     );
-    //     assertEq(mockERC721.balanceOf(address(tba)), 1);
-    //     tba.execute(
-    //         address(mockERC721),
-    //         0 ether,
-    //         abi.encodeWithSignature(
-    //             "setApprovalForAll(address,bool)",
-    //             address(tba),
-    //             true
-    //         ),
-    //         0
-    //     );
-
-    //     tba.execute(
-    //         address(mockERC721),
-    //         0 ether,
-    //         abi.encodeWithSignature(
-    //             "safeTransferFrom(address,address,uint256)",
-    //             address(tba),
-    //             recipient,
-    //             0,
-    //             ""
-    //         ),
-    //         0
-    //     );
-
-    //     vm.startPrank(recipient);
-    //     vm.expectRevert("Invalid signer");
-    //     tba.execute(
-    //         address(mockERC721),
-    //         0 ether,
-    //         abi.encodeWithSignature("safeMint(address)", recipient),
-    //         0
-    //     );
-    // }
-
-    function testGetMockERC721() public {
-        vm.startPrank(owner);
-        address account = createTBA();
-
-        TokenBoundAccount tba = TokenBoundAccount(payable(account));
-        mockERC721.safeMint(address(tba));
-        mockERC721.safeMint(address(tba));
-
-        TokenBoundAccount.Token memory tokenInfo = TokenBoundAccount.Token(
-            address(mockERC721),
-            0, // just set to 0 for ERC721
-            TokenBoundAccount.TokenType.ERC721
-        );
-        assertEq(tba.getTokenBalance(tokenInfo), 2);
-    }
-
-    function testGetMockERC1155() public {
-        vm.startPrank(owner);
-        address account = createTBA();
-
-        TokenBoundAccount tba = TokenBoundAccount(payable(account));
-        mockERC1155.mint(address(tba), 0, 2, "");
-        TokenBoundAccount.Token memory tokenInfo = TokenBoundAccount.Token(
-            address(mockERC1155),
-            0, // just set to 0 for ERC721
-            TokenBoundAccount.TokenType.ERC1155
-        );
-        assertEq(MockERC1155(mockERC1155).balanceOf(address(tba), 0), 2);
-        assertEq(tba.getTokenBalance(tokenInfo), 2);
-    }
-
-    function testGetTokenCounts() public {
-        vm.startPrank(owner);
-        address account = createTBA();
-        TokenBoundAccount tba = TokenBoundAccount(payable(account));
-        mockERC721.safeMint(address(tba));
-        mockERC721.safeMint(address(tba));
-        mockERC1155.mint(address(tba), 0, 2, "");
-
-        TokenBoundAccount.Token[] memory tokens = new TokenBoundAccount.Token[](
-            2
-        );
-        tokens[0] = TokenBoundAccount.Token(
-            address(mockERC721),
-            0,
-            TokenBoundAccount.TokenType.ERC721
-        );
-        tokens[1] = TokenBoundAccount.Token(
-            address(mockERC1155),
-            0,
-            TokenBoundAccount.TokenType.ERC1155
-        );
-
-        assertEq(tba.getTokenCounts(tokens), 4);
     }
 
     function testTransferOwnership() public {
@@ -184,7 +133,7 @@ contract TokenBoundAccountTest is Test {
     }
 
     function createTBA() public returns (address) {
-        mockERC721.safeMint(owner);
+        mockERC721.safeMint(owner, "");
 
         address account = registry.createAccount(
             address(implementation), //implementation
@@ -203,17 +152,27 @@ contract TokenBoundAccountTest is Test {
     }
 
     function deployMockERC721() public returns (MockERC721) {
-        MockERC721 nft = factory.createERC721(5);
-        return nft;
-    }
-
-    function deployMockERC1155() public returns (MockERC1155) {
-        MockERC1155 nft = factory.createERC1155(5);
+        MockERC721 nft = factory.createERC721("", "", 5);
         return nft;
     }
 
     function deployRegistry() public returns (Registry) {
         return new Registry();
     }
-		 */
+
+    function deploySchemaResolver() public returns (AttesterResolver) {
+        return new AttesterResolver(eas, minter);
+    }
+
+    function registerSchema() public returns (bytes32) {
+        bytes32 uid = schemaRegistry.register(schema, attesterResolver, true);
+        return uid;
+    }
+
+    function configureChain() public {
+        if (block.chainid == 80001) {
+            eas = IEAS(0xaEF4103A04090071165F78D45D83A0C0782c2B2a);
+            schemaRegistry = ISchemaRegistry(0x55D26f9ae0203EF95494AE4C170eD35f4Cf77797);
+        }
+    }
 }

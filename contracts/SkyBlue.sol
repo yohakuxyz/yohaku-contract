@@ -20,11 +20,10 @@ contract SkyBlue is ERC721, ERC721Enumerable, Ownable {
 
     mapping(uint256 => address[]) public previousOwners;
 
-    constructor(
-        address initialOwner,
-        string memory defaultImageUrl,
-        NFTFactory _factory
-    ) ERC721("SkyBlueNFT", "SKB") Ownable(initialOwner) {
+    constructor(address initialOwner, string memory defaultImageUrl, NFTFactory _factory)
+        ERC721("SkyBlueNFT", "SKB")
+        Ownable(initialOwner)
+    {
         _defaultImageUrl = defaultImageUrl;
         nftFactory = _factory;
     }
@@ -33,10 +32,7 @@ contract SkyBlue is ERC721, ERC721Enumerable, Ownable {
         _defaultImageUrl = defaultImageUrl;
     }
 
-    function setImageURL(
-        uint256 tokenId,
-        string memory imageUrl
-    ) public onlyOwner {
+    function setImageURL(uint256 tokenId, string memory imageUrl) public onlyOwner {
         _tokenData[tokenId].imageUrl = imageUrl;
     }
 
@@ -51,11 +47,7 @@ contract SkyBlue is ERC721, ERC721Enumerable, Ownable {
         _safeMint(to, tokenId);
     }
 
-    function mintWithMetaData(
-        address to,
-        string memory description,
-        string memory imageUrl
-    ) external onlyOwner {
+    function mintWithMetaData(address to, string memory description, string memory imageUrl) external onlyOwner {
         uint256 tokenId = _nextTokenId++;
         TokenData memory tokenData = _tokenData[tokenId];
         tokenData.owner = to;
@@ -77,35 +69,28 @@ contract SkyBlue is ERC721, ERC721Enumerable, Ownable {
     function getTotalPoint(uint256 tokenId) public view returns (uint256) {
         uint256 totalPoints = 0;
         for (uint256 i = 0; i < previousOwners[tokenId].length; i++) {
-            totalPoints += nftFactory.getTotalPoints(
-                previousOwners[tokenId][i]
-            );
+            totalPoints += nftFactory.getTotalPoints(previousOwners[tokenId][i]);
         }
         return totalPoints;
     }
 
     // The following functions are overrides required by Solidity.
 
-    function _update(
-        address to,
-        uint256 tokenId,
-        address auth
-    ) internal override(ERC721, ERC721Enumerable) returns (address) {
+    function _update(address to, uint256 tokenId, address auth)
+        internal
+        override(ERC721, ERC721Enumerable)
+        returns (address)
+    {
         previousOwners[tokenId].push(to);
         _tokenData[tokenId].owner = to;
         return super._update(to, tokenId, auth);
     }
 
-    function _increaseBalance(
-        address account,
-        uint128 value
-    ) internal override(ERC721, ERC721Enumerable) {
+    function _increaseBalance(address account, uint128 value) internal override(ERC721, ERC721Enumerable) {
         super._increaseBalance(account, value);
     }
 
-    function tokenURI(
-        uint256 tokenId
-    ) public view override(ERC721) returns (string memory) {
+    function tokenURI(uint256 tokenId) public view override(ERC721) returns (string memory) {
         // return super.tokenURI(tokenId);
         TokenData memory tokenData = _tokenData[tokenId];
 
@@ -114,9 +99,7 @@ contract SkyBlue is ERC721, ERC721Enumerable, Ownable {
         string[] memory contributions;
 
         if (previousOwners[tokenId].length > 0) {
-            contributions = nftFactory.getContributions(
-                previousOwners[tokenId]
-            );
+            contributions = nftFactory.getContributions(previousOwners[tokenId]);
         }
 
         bytes memory attributes = abi.encodePacked(
@@ -131,9 +114,7 @@ contract SkyBlue is ERC721, ERC721Enumerable, Ownable {
             '"}'
         );
 
-        string memory imageUrl = bytes(tokenData.imageUrl).length > 0
-            ? tokenData.imageUrl
-            : _defaultImageUrl;
+        string memory imageUrl = bytes(tokenData.imageUrl).length > 0 ? tokenData.imageUrl : _defaultImageUrl;
 
         bytes memory metadata = abi.encodePacked(
             '{"name": "SkyBlue 2024 #',
@@ -146,18 +127,10 @@ contract SkyBlue is ERC721, ERC721Enumerable, Ownable {
             attributes,
             "]}"
         );
-        return
-            string(
-                abi.encodePacked(
-                    "data:application/json;base64,",
-                    Base64.encode(metadata)
-                )
-            );
+        return string(abi.encodePacked("data:application/json;base64,", Base64.encode(metadata)));
     }
 
-    function supportsInterface(
-        bytes4 interfaceId
-    ) public view override(ERC721, ERC721Enumerable) returns (bool) {
+    function supportsInterface(bytes4 interfaceId) public view override(ERC721, ERC721Enumerable) returns (bool) {
         return super.supportsInterface(interfaceId);
     }
 }
