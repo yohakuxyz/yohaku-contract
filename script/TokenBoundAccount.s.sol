@@ -8,22 +8,23 @@ import "../contracts/Registry.sol";
 import "../contracts/TokenBoundAccount.sol";
 import "../contracts/NFTFactory.sol";
 
-// // forge script script/TokenBoundAccount.s.sol:TokenBoundAccountSctipt --rpc-url https://optimism-goerli.infura.io/v3/APIkey --broadcast -vvvv --private-key PrivateKey --etherscan-api-key APIkey --verify
+// forge script script/TokenBoundAccount.s.sol:TokenBoundAccountSctipt --rpc-url $OPTIMISM_SEPOLIA_RPC_URL --broadcast -vvvv --private-key $DEPLOYER_PRIVATE_KEY --etherscan-api-key $API_KEY_OPTIMISTIC_ETHERSCAN --verify
 contract TokenBoundAccountSctipt is Script {
     address public owner = 0x06aa005386F53Ba7b980c61e0D067CaBc7602a62;
-    uint256 public TOKEN_ID = 1;
+    
     NFTFactory public factory;
 
-    function run() external returns (address) {
+    function run() external {
         vm.startBroadcast();
         factory = new NFTFactory();
         Registry registry = new Registry();
-        SkyBlue skyblue = new SkyBlue(owner, "ipfs://bafkreidp6xswfzex5mr6akr7azn3e4rza57ukuxyo2tq6slymliaeuenoi");
+        SkyBlue skyblue = new SkyBlue(owner, "QmYRmop52xSAmUC5J5squPrkyu6HtGwQc6yqQNze5q5S8v");
         TokenBoundAccount implementation = new TokenBoundAccount();
-        skyblue.safeMint(owner);
-        address account = registry.createAccount(address(implementation), 0, block.chainid, address(skyblue), 0);
-        TokenBoundAccount accountInstance = TokenBoundAccount(payable(account));
         vm.stopBroadcast();
-        return address(accountInstance);
+
+        console2.log("registry deployed:", address(registry));
+        console2.log("skyblue deployed:", address(skyblue));
+        console2.log("factory deployed:", address(factory));
+        console2.log("implementation deployed:", address(implementation));
     }
 }

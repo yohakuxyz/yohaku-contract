@@ -121,9 +121,9 @@ contract TokenBoundAccountTest is Test {
         });
 
         AttestationRequest memory request = AttestationRequest({schema: uid, data: attestationRequestData});
-        // eas.attest(request);
+        eas.attest(request);
 
-        // vm.expectRevert();
+        vm.expectRevert();
     }
 
     function testSendTransaction() external {
