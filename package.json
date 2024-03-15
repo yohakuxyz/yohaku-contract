@@ -4,6 +4,7 @@
     "build": "forge build",
     "test": "forge test",
     "test:coverage": "forge coverage",
+		"test:tba-mumbai" : "forge fmt && forge test --fork-url $POLYGON_MUMBAI_RPC_URL --match-path test/foundry/TokenBoundAccount.t.sol",
     "format": "forge fmt",
     "clean": "rm -rf cache out"
   },
