@@ -5,16 +5,10 @@ import "forge-std/Test.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/utils/Base64.sol";
 
-import "../../contracts/MockNFT.sol";
-import "../../contracts/Registry.sol";
 import "../../contracts/SkyBlue.sol";
-import "../../contracts/NFTFactory.sol";
 
 contract SkyBlueTest is Test {
-    MockERC721 public mockERC721;
     SkyBlue public skyblue;
-    Registry public registry;
-    NFTFactory public factory;
 
     address public currentPrankee;
     address public owner = makeAddr("owner");
@@ -23,9 +17,6 @@ contract SkyBlueTest is Test {
     address public charlie = makeAddr("charlie");
 
     function setUp() public {
-        factory = deployFactory();
-        mockERC721 = deployMockERC721();
-
         skyblue = new SkyBlue(owner, "");
     }
 
@@ -56,22 +47,6 @@ contract SkyBlueTest is Test {
 
     function mintSkyblue(address to) public prankception(owner) {
         skyblue.mintWithMetaData(to, "SkyblueNFT represent proof of contributions", "");
-    }
-
-    function mintMockERC721(address to) public {
-        vm.startPrank(owner);
-        mockERC721.safeMint(to, "test");
-        vm.stopPrank();
-    }
-
-    function deployFactory() public returns (NFTFactory) {
-        factory = new NFTFactory();
-        return factory;
-    }
-
-    function deployMockERC721() public returns (MockERC721) {
-        MockERC721 nft = factory.createERC721("MOCK", "MOCK", 10);
-        return nft;
     }
 
     modifier prankception(address prankee) {

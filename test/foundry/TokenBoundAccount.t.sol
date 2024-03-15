@@ -216,10 +216,14 @@ contract TokenBoundAccountTest is Test {
         skyblue.safeTransferFrom(from, to, tokenId);
     }
 
+    // TODO: check op sepolia
     function configureChain() public {
         if (block.chainid == 80001) {
             eas = IEAS(0xaEF4103A04090071165F78D45D83A0C0782c2B2a);
             schemaRegistry = ISchemaRegistry(0x55D26f9ae0203EF95494AE4C170eD35f4Cf77797);
+        } else if (block.chainid == 11155111) {
+            eas = IEAS(0xC0D3c0D3C0d3c0D3c0D3C0D3c0D3c0d3c0d30021);
+            schemaRegistry = ISchemaRegistry(0xc0d3c0d3c0d3C0d3c0d3C0D3C0D3c0d3C0D30020);
         }
     }
 
