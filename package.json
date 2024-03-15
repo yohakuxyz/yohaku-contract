@@ -6,7 +6,8 @@
     "test:skyblue": "forge fmt && forge test --match-path test/foundry/SkyBlue.t.sol",
     "test:coverage": "forge coverage",
     "test:tba-mumbai": "forge fmt && forge test --fork-url $POLYGON_MUMBAI_RPC_URL --match-path test/foundry/TokenBoundAccount.t.sol",
-    "test:tba-opsepolia": "forge fmt && forge test --fork-url $OPTIMISM_SEPOLIA_RPC_URL --match-path test/foundry/TokenBoundAccount.t.sol",
+    "test:tba-polygon": "forge fmt && forge test --fork-url $POLYGON_MUMBAI_RPC_URL --match-path test/foundry/TokenBoundAccount.t.sol",
+    "test:tba-op": "forge fmt && forge test --fork-url $OPTIMISM_MAINNET_RPC_URL --match-path test/foundry/TokenBoundAccount.t.sol",
     "format": "forge fmt",
     "clean": "rm -rf cache out"
   },
