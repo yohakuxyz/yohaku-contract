@@ -3,6 +3,8 @@
     "compile": "forge compile",
     "build": "forge build",
     "test": "forge test",
+		"test:skyblue": "forge test --match-path test/foundry/SkyBlue.t.sol",
+		"test:tba": "forge test --match-path test/foundry/TokenBoundAccount.t.sol",
     "test:coverage": "forge coverage",
     "format": "forge fmt",
     "clean": "rm -rf cache out"

@@ -16,6 +16,7 @@ contract SkyBlueTest is Test {
     Registry public registry;
     NFTFactory public factory;
 
+    address public currentPrankee;
     address public owner = makeAddr("owner");
     address public alice = makeAddr("alice");
     address public bob = makeAddr("bob");
@@ -30,8 +31,7 @@ contract SkyBlueTest is Test {
 
     function testTokenURI() public {
         mintSkyblue(alice);
-        mintSkyblue(alice);
-        console.log(skyblue.tokenURI(1));
+        console.log(skyblue.tokenURI(0));
     }
 
     function testTransferOwnership() public {
@@ -54,10 +54,8 @@ contract SkyBlueTest is Test {
         assertEq(skyblue.ownerOf(0), alice);
     }
 
-    function mintSkyblue(address to) public {
-        vm.startPrank(owner);
-        skyblue.safeMint(to);
-        vm.stopPrank();
+    function mintSkyblue(address to) public prankception(owner) {
+        skyblue.mintWithMetaData(to, "SkyblueNFT represent proof of contributions", "");
     }
 
     function mintMockERC721(address to) public {
@@ -74,5 +72,16 @@ contract SkyBlueTest is Test {
     function deployMockERC721() public returns (MockERC721) {
         MockERC721 nft = factory.createERC721("MOCK", "MOCK", 10);
         return nft;
+    }
+
+    modifier prankception(address prankee) {
+        address prankBefore = currentPrankee;
+        vm.stopPrank();
+        vm.startPrank(prankee);
+        _;
+        vm.stopPrank();
+        if (prankBefore != address(0)) {
+            vm.startPrank(prankBefore);
+        }
     }
 }
