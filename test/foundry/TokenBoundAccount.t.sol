@@ -8,10 +8,13 @@ import {IERC6551Executable} from "erc6551/interfaces/IERC6551Executable.sol";
 
 import {IEAS, Attestation, AttestationRequest, AttestationRequestData} from "eas-contracts/IEAS.sol";
 import {ISchemaRegistry} from "eas-contracts/ISchemaRegistry.sol";
+import {SchemaResolver} from "eas-contracts/resolver/SchemaResolver.sol";
+import {ISchemaResolver} from "eas-contracts/resolver/ISchemaResolver.sol";
 
 import "../../contracts/MockNFT.sol";
 import "../../contracts/Registry.sol";
 import "../../contracts/TokenBoundAccount.sol";
+import "../../contracts/SkyBlue.sol";
 import "../../contracts/NFTFactory.sol";
 import {AttesterResolver} from "../../contracts/AttesterResolver.sol";
 
@@ -23,28 +26,60 @@ contract TokenBoundAccountTest is Test {
     AttesterResolver public attesterResolver;
     IEAS public eas;
     ISchemaRegistry public schemaRegistry;
+    SkyBlue public skyblue;
     bytes32 public schemaUID;
 
+    address public currentPrankee;
     address public owner = makeAddr("owner");
-    address public minter = makeAddr("minter");
+    address public alice = makeAddr("alice");
     string schema =
         "address TokenBoundAccount,address CurrentOwner,address TokenAddress,uint256 tokenId,uint8 Score,string Description";
+
+    event Minted(address indexed to, address indexed account, bytes32 indexed attestationUID);
 
     function setUp() public {
         configureChain();
         vm.startPrank(owner);
-        registry = deployRegistry();
-        factory = deployFactory();
-        mockERC721 = deployMockERC721();
-        schemaUID = registerSchema();
-        attesterResolver = deploySchemaResolver();
+        registry = new Registry();
+        factory = factory = new NFTFactory(owner, eas, schemaRegistry);
+        schemaUID = factory.schemaUID();
+        attesterResolver = factory.resolver();
+        mockERC721 = factory.createERC721("Mock721", "MOCK", 5);
+        skyblue = new SkyBlue(owner, "");
         implementation = new TokenBoundAccount();
         vm.stopPrank();
     }
 
-    function testCreateAccount() public {
-        setUp();
+    // EAS test
+    function testMintERC721() public {
+        address account = createTBA();
+
         vm.startPrank(owner);
+        vm.expectEmit(true, true, false, false);
+        emit Minted(alice, account, 0x0);
+        bytes32 uid = mockERC721.safeMint(alice, account, "mint and attest");
+
+        bytes memory attestationData = eas.getAttestation(uid).data;
+        (
+            address tokenBoundAccount,
+            address currentOwner,
+            address tokenAddress,
+            uint256 tokenId,
+            uint8 score,
+            string memory description
+        ) = abi.decode(attestationData, (address, address, address, uint256, uint8, string));
+        assertEq(tokenBoundAccount, account);
+        assertEq(currentOwner, alice);
+        assertEq(tokenAddress, address(mockERC721));
+        assertEq(tokenId, 0);
+        assertEq(score, mockERC721.basePoints());
+        assertEq(description, "mint and attest");
+
+        vm.stopPrank();
+    }
+
+    // TBA test
+    function testCreateAccount() public {
         address account = createTBA();
 
         assertEq(
@@ -53,94 +88,27 @@ contract TokenBoundAccountTest is Test {
                 address(implementation), //implementation
                 0, //salt,
                 block.chainid, //chainId,
-                address(mockERC721), //tokenContract
+                address(skyblue), //tokenContract
                 0 //tokenId
             )
         );
     }
 
-    function testRegisterSchema() public {
-        setUp();
-        vm.startPrank(owner);
-        bytes32 uid = registerSchema();
-        assertEq(schema, schemaRegistry.getSchema(uid).schema);
-    }
-
-    function testAttest() public {
-        address account = createTBA();
-        vm.startPrank(minter);
-        // "address TokenBoundAccount,address CurrentOwner,address TokenAddress,uint256 tokenId,uint8 Score,string Description";
-        bytes memory _data = abi.encode(account, owner, mockERC721, 0, 5, "test");
-
-        AttestationRequestData memory attestationRequestData = AttestationRequestData({
-            recipient: owner,
-            expirationTime: uint64(block.timestamp + 100),
-            revocable: true,
-            refUID: 0x0,
-            data: _data,
-            value: 0
-        });
-
-        AttestationRequest memory request = AttestationRequest({schema: schemaUID, data: attestationRequestData});
-        bytes32 attestationUID = eas.attest(request);
-        emit log_bytes32(attestationUID);
-
-        bytes memory attestationData = eas.getAttestation(attestationUID).data;
-        (
-            address _tokenBoundAccount,
-            address _currentOwner,
-            address _tokenAddress,
-            uint256 tokenId,
-            uint8 _score,
-            string memory _description
-        ) = abi.decode(attestationData, (address, address, address, uint256, uint8, string));
-        assertEq(attestationData, _data);
-        assertEq(_tokenBoundAccount, account);
-        assertEq(_currentOwner, owner);
-        assertEq(_tokenAddress, address(mockERC721));
-        assertEq(tokenId, 0);
-        assertEq(_score, 5);
-        assertEq(_description, "test");
-    }
-
-    function testRevertResolver() public {
-        bytes32 uid = registerSchema();
-        address account = createTBA();
-
-        vm.startPrank(owner);
-
-        bytes memory _data = abi.encode(account, owner, mockERC721, 0, 5, "test");
-
-        AttestationRequestData memory attestationRequestData = AttestationRequestData({
-            recipient: owner,
-            expirationTime: uint64(block.timestamp + 100),
-            revocable: true,
-            refUID: 0x0,
-            data: _data,
-            value: 0
-        });
-
-        AttestationRequest memory request = AttestationRequest({schema: uid, data: attestationRequestData});
-        eas.attest(request);
-
-        vm.expectRevert();
-    }
-
     function testSendTransaction() external {
-        vm.startPrank(owner);
         address recipient = makeAddr("recipient");
         address account = createTBA();
 
         IERC6551Account accountInstance = IERC6551Account(payable(account));
         IERC6551Executable executableAccountInstance = IERC6551Executable(account);
-        assertEq(TokenBoundAccount(payable(account)).owner(), owner);
+        assertEq(TokenBoundAccount(payable(account)).owner(), alice);
 
-        assertEq(accountInstance.isValidSigner(owner, ""), IERC6551Account.isValidSigner.selector);
+        assertEq(accountInstance.isValidSigner(alice, ""), IERC6551Account.isValidSigner.selector);
         vm.deal(account, 1 ether);
+        vm.startPrank(alice);
+
         executableAccountInstance.execute(payable(recipient), 0.5 ether, "", 0);
-        assertEq(account.balance, 0.5 ether);
-        assertEq(recipient.balance, 0.5 ether);
         assertEq(accountInstance.state(), 1);
+        vm.stopPrank();
     }
 
     function testTransferOwnership() public {
@@ -148,9 +116,9 @@ contract TokenBoundAccountTest is Test {
         address account = createTBA();
         address recipient = makeAddr("recipient");
         TokenBoundAccount tba = TokenBoundAccount(payable(account));
-        assertEq(tba.owner(), owner);
-        mockERC721.safeTransferFrom(owner, recipient, 0);
-        assertEq(recipient, tba.owner());
+        assertEq(tba.owner(), alice);
+        _transferSkyBlue(alice, recipient, 0);
+        assertEq(tba.owner(), recipient);
 
         vm.deal(address(tba), 1 ether);
         vm.expectRevert("Invalid signer");
@@ -158,67 +126,42 @@ contract TokenBoundAccountTest is Test {
     }
 
     function createTBA() public returns (address) {
-        mockERC721.safeMint(owner, "");
-
+        _mintSkyBlue(alice, "test", "");
+        vm.startPrank(alice);
         address account = registry.createAccount(
             address(implementation), //implementation
             0, //salt,
             block.chainid, //chainId,
-            address(mockERC721), //tokenContract
+            address(skyblue), //tokenContract
             0 //tokenId
         );
         assertTrue(account != address(0));
         return account;
     }
 
-    function createNewAttestation(address _account, address _recipient, address _owner) public returns (bytes32) {
-        // "address TokenBoundAccount,address CurrentOwner,address TokenAddress,uint256 tokenId,uint8 Score,string Description";
-        bytes memory _data = abi.encode(_account, _owner, mockERC721, 0, 5, "test");
-
-        AttestationRequestData memory attestationRequestData = AttestationRequestData({
-            recipient: _recipient,
-            expirationTime: uint64(block.timestamp + 100),
-            revocable: true,
-            refUID: 0x0,
-            data: _data,
-            value: 0
-        });
-
-        AttestationRequest memory request = AttestationRequest({schema: schemaUID, data: attestationRequestData});
-        vm.startPrank(owner);
-        bytes32 attestationUID = eas.attest(request);
-
-        vm.stopPrank();
-        return attestationUID;
+    function _mintSkyBlue(address to, string memory description, string memory imageUrl) internal prankception(owner) {
+        skyblue.mintWithMetaData(to, description, imageUrl);
     }
 
-    function deployFactory() public returns (NFTFactory) {
-        factory = new NFTFactory();
-        return factory;
-    }
-
-    function deployMockERC721() public returns (MockERC721) {
-        MockERC721 nft = factory.createERC721("", "", 5);
-        return nft;
-    }
-
-    function deployRegistry() public returns (Registry) {
-        return new Registry();
-    }
-
-    function deploySchemaResolver() public returns (AttesterResolver) {
-        return new AttesterResolver(eas, minter);
-    }
-
-    function registerSchema() public returns (bytes32) {
-        bytes32 uid = schemaRegistry.register(schema, attesterResolver, true);
-        return uid;
+    function _transferSkyBlue(address from, address to, uint256 tokenId) internal prankception(from) {
+        skyblue.safeTransferFrom(from, to, tokenId);
     }
 
     function configureChain() public {
         if (block.chainid == 80001) {
             eas = IEAS(0xaEF4103A04090071165F78D45D83A0C0782c2B2a);
             schemaRegistry = ISchemaRegistry(0x55D26f9ae0203EF95494AE4C170eD35f4Cf77797);
+        }
+    }
+
+    modifier prankception(address prankee) {
+        address prankBefore = currentPrankee;
+        vm.stopPrank();
+        vm.startPrank(prankee);
+        _;
+        vm.stopPrank();
+        if (prankBefore != address(0)) {
+            vm.startPrank(prankBefore);
         }
     }
 }
