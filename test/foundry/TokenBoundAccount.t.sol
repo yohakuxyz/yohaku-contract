@@ -36,6 +36,7 @@ contract TokenBoundAccountTest is Test {
         "address TokenBoundAccount,address CurrentOwner,address TokenAddress,uint256 tokenId,uint8 Score,string Description";
 
     event Minted(address indexed to, address indexed account, bytes32 indexed attestationUID);
+    event AttesterAdded(address indexed NewAttester);
 
     function setUp() public {
         configureChain();
@@ -47,6 +48,42 @@ contract TokenBoundAccountTest is Test {
         mockERC721 = factory.createERC721("Mock721", "MOCK", 5);
         skyblue = new SkyBlue(owner, "");
         implementation = new TokenBoundAccount();
+        vm.stopPrank();
+    }
+
+    function testAttestManual() external {
+        address account = _createTBA();
+        vm.startPrank(owner);
+        bytes memory _data = abi.encode(account, alice, mockERC721, 0, 5, "test");
+
+        AttestationRequestData memory attestationRequestData = AttestationRequestData({
+            recipient: alice,
+            expirationTime: uint64(block.timestamp + 100),
+            revocable: true,
+            refUID: 0x0,
+            data: _data,
+            value: 0
+        });
+        AttestationRequest memory request = AttestationRequest({schema: schemaUID, data: attestationRequestData});
+
+        bytes32 uid = eas.attest(request);
+        bytes memory attestationData = eas.getAttestation(uid).data;
+
+        (
+            address tokenBoundAccount,
+            address currentOwner,
+            address tokenAddress,
+            uint256 tokenId,
+            uint8 score,
+            string memory description
+        ) = abi.decode(attestationData, (address, address, address, uint256, uint8, string));
+
+        assertEq(tokenBoundAccount, account);
+        assertEq(currentOwner, alice);
+        assertEq(tokenAddress, address(mockERC721));
+        assertEq(tokenId, 0);
+        assertEq(score, 5);
+        assertEq(description, "test");
         vm.stopPrank();
     }
 
@@ -68,6 +105,7 @@ contract TokenBoundAccountTest is Test {
             uint8 score,
             string memory description
         ) = abi.decode(attestationData, (address, address, address, uint256, uint8, string));
+
         assertEq(tokenBoundAccount, account);
         assertEq(currentOwner, alice);
         assertEq(tokenAddress, address(mockERC721));
@@ -75,6 +113,14 @@ contract TokenBoundAccountTest is Test {
         assertEq(score, mockERC721.basePoints());
         assertEq(description, "mint and attest");
 
+        vm.stopPrank();
+    }
+
+    function testAddAttester() external {
+        vm.startPrank(owner);
+        vm.expectEmit(true, false, false, true);
+        emit AttesterAdded(alice);
+        attesterResolver.addAttester(alice);
         vm.stopPrank();
     }
 
@@ -112,6 +158,28 @@ contract TokenBoundAccountTest is Test {
     }
 
     // revert test
+
+    function testRevertInvalidAttester() external {
+        address account = _createTBA();
+        vm.startPrank(alice);
+        bytes memory _data = abi.encode(account, owner, mockERC721, 0, 5, "test");
+
+        AttestationRequestData memory attestationRequestData = AttestationRequestData({
+            recipient: owner,
+            expirationTime: uint64(block.timestamp + 100),
+            revocable: true,
+            refUID: 0x0,
+            data: _data,
+            value: 0
+        });
+        AttestationRequest memory request = AttestationRequest({schema: schemaUID, data: attestationRequestData});
+
+        vm.expectRevert(abi.encodeWithSelector(CallerNotAttester.selector, alice));
+        eas.attest(request);
+
+        vm.stopPrank();
+    }
+
     function testRevertInvalidSigner() external {
         vm.startPrank(owner);
         address account = _createTBA();

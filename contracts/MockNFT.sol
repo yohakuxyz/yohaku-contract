@@ -9,8 +9,10 @@ import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Base64.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
+
 import {IEAS, Attestation, AttestationRequest, AttestationRequestData} from "eas-contracts/IEAS.sol";
 import {ISchemaRegistry} from "eas-contracts/ISchemaRegistry.sol";
+
 import "./NFTFactory.sol";
 
 struct TokenData {
@@ -73,24 +75,30 @@ contract MockERC721 is ERC721 {
 
     // TODO: access control
     function safeMint(address to, address account, string memory description) external returns (bytes32) {
-        // check if the recipient already has a token
-        require(balanceOf(to) == 0, "Recipient already has a token");
+        // TODO: check if the recipient already has a token
+        // require(balanceOf(to) == 0, "Recipient already has a token");
 
         uint256 tokenId = _nextTokenId++;
+
+        // store token data
         TokenData memory tokenData = _tokenData[tokenId];
         tokenData.owner = to;
         tokenData.description = description;
 
+        // set default image url if not provided
         if (bytes(tokenData.imageUrl).length == 0) {
             tokenData.imageUrl = _defaultImageUrl;
         }
-
+        // create new attestation
+        // the recipient of attestation must be the token bound accout
         bytes32 uid = _attest(account, to, tokenId, basePoints, description);
 
         require(uid != 0x0, "Attestation failed");
 
+        // send nft to the current owner of token bound account
         _safeMint(to, tokenId);
 
+        // emit Minted event
         emit Minted(to, account, uid);
 
         return uid;

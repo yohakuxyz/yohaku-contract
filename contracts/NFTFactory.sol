@@ -23,14 +23,25 @@ contract NFTFactory {
     event NFTCreated(address nftAddress);
 
     constructor(address initialMinter, IEAS _eas, ISchemaRegistry _schemaRegistry) {
+        // set EAS contract
         eas = _eas;
-        resolver = new AttesterResolver(eas, initialMinter);
+
+        // deploy AttesterResolver contract
+        resolver = new AttesterResolver(eas, address(this));
+        // add initialMinter as attester
+        resolver.addAttester(initialMinter);
+
+        // register new schema
         bytes32 _schemaUID = _schemaRegistry.register(
             "address TokenBoundAccount,address CurrentOwner,address TokenAddress,uint256 tokenId,uint8 Score,string Description",
             ISchemaResolver(address(resolver)),
             true
         );
+
+        // set schemaUID
         schemaUID = _schemaUID;
+
+        // emit FactoryCreated event
         emit FactoryCreated(address(this), address(eas), address(resolver), schemaUID);
     }
 
