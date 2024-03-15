@@ -51,8 +51,8 @@ contract TokenBoundAccountTest is Test {
     }
 
     // EAS test
-    function testMintERC721() public {
-        address account = createTBA();
+    function testMintERC721() external {
+        address account = _createTBA();
 
         vm.startPrank(owner);
         vm.expectEmit(true, true, false, false);
@@ -79,8 +79,8 @@ contract TokenBoundAccountTest is Test {
     }
 
     // TBA test
-    function testCreateAccount() public {
-        address account = createTBA();
+    function testCreateAccount() external {
+        address account = _createTBA();
 
         assertEq(
             account,
@@ -96,7 +96,7 @@ contract TokenBoundAccountTest is Test {
 
     function testSendTransaction() external {
         address recipient = makeAddr("recipient");
-        address account = createTBA();
+        address account = _createTBA();
 
         IERC6551Account accountInstance = IERC6551Account(payable(account));
         IERC6551Executable executableAccountInstance = IERC6551Executable(account);
@@ -111,9 +111,10 @@ contract TokenBoundAccountTest is Test {
         vm.stopPrank();
     }
 
-    function testTransferOwnership() public {
+    // revert test
+    function testRevertInvalidSigner() external {
         vm.startPrank(owner);
-        address account = createTBA();
+        address account = _createTBA();
         address recipient = makeAddr("recipient");
         TokenBoundAccount tba = TokenBoundAccount(payable(account));
         assertEq(tba.owner(), alice);
@@ -125,7 +126,7 @@ contract TokenBoundAccountTest is Test {
         tba.execute(payable(address(0)), 0.5 ether, "", 0);
     }
 
-    function createTBA() public returns (address) {
+    function _createTBA() internal returns (address) {
         _mintSkyBlue(alice, "test", "");
         vm.startPrank(alice);
         address account = registry.createAccount(
