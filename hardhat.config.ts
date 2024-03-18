@@ -12,7 +12,7 @@ const config: HardhatUserConfig = {
     settings: {
       optimizer: {
         enabled: true,
-        runs: 200,
+        runs: 10,
       },
     },
   },
@@ -22,13 +22,18 @@ const config: HardhatUserConfig = {
       accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
       blockGasLimit: gasLimit,
     },
+    polygon: {
+      url: process.env.POLYGON_POS_RPC_URL!,
+      accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
+      // blockGasLimit: gasLimit,
+    },
   },
   etherscan: {
     apiKey: {
       polygonMumbai: process.env.API_KEY_POLYGONSCAN!,
+      polygon: process.env.API_KEY_POLYGONSCAN!,
     },
   },
-
 };
 
 export default config;

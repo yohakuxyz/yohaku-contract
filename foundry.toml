@@ -6,4 +6,4 @@ test = 'test/foundry'
 cache_path  = 'cache/foundry'
 
 optimizer = true
-optimizer_runs = 1000
+optimizer_runs = 1
