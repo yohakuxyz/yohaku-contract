@@ -8,8 +8,6 @@ import {IERC6551Executable} from "erc6551/interfaces/IERC6551Executable.sol";
 
 import {IEAS, Attestation, AttestationRequest, AttestationRequestData} from "eas-contracts/IEAS.sol";
 import {ISchemaRegistry} from "eas-contracts/ISchemaRegistry.sol";
-import {SchemaResolver} from "eas-contracts/resolver/SchemaResolver.sol";
-import {ISchemaResolver} from "eas-contracts/resolver/ISchemaResolver.sol";
 
 import "../../contracts/MockNFT.sol";
 import "../../contracts/Registry.sol";
@@ -37,6 +35,7 @@ contract TokenBoundAccountTest is Test {
 
     event Minted(address indexed to, address indexed account, bytes32 indexed attestationUID);
     event AttesterAdded(address indexed NewAttester);
+    event Attested(address indexed recipient, address indexed attester, bytes32 uid, bytes32 indexed schemaUID);
 
     function setUp() public {
         configureChain();
@@ -57,7 +56,7 @@ contract TokenBoundAccountTest is Test {
         bytes memory _data = abi.encode(account, alice, mockERC721, 0, 5, "test");
 
         AttestationRequestData memory attestationRequestData = AttestationRequestData({
-            recipient: alice,
+            recipient: account,
             expirationTime: uint64(block.timestamp + 100),
             revocable: true,
             refUID: 0x0,
@@ -66,6 +65,8 @@ contract TokenBoundAccountTest is Test {
         });
         AttestationRequest memory request = AttestationRequest({schema: schemaUID, data: attestationRequestData});
 
+        vm.expectEmit(true, true, true, false);
+        emit Attested(account, owner, 0x0, schemaUID);
         bytes32 uid = eas.attest(request);
         bytes memory attestationData = eas.getAttestation(uid).data;
 
@@ -112,6 +113,17 @@ contract TokenBoundAccountTest is Test {
         assertEq(tokenId, 0);
         assertEq(score, mockERC721.basePoints());
         assertEq(description, "mint and attest");
+
+        vm.stopPrank();
+    }
+
+    function testAttestedEvent() external {
+        address account = _createTBA();
+
+        vm.startPrank(owner);
+        vm.expectEmit(true, true, true, false);
+        emit Attested(account, address(mockERC721), 0x0, schemaUID);
+        mockERC721.safeMint(alice, account, "mint and attest");
 
         vm.stopPrank();
     }
@@ -226,6 +238,8 @@ contract TokenBoundAccountTest is Test {
         } else if (block.chainid == 10) {
             eas = IEAS(0x4E0275Ea5a89e7a3c1B58411379D1a0eDdc5b088);
             schemaRegistry = ISchemaRegistry(0x6232208d66bAc2305b46b4Cb6BCB3857B298DF13);
+        } else {
+            revert("Unsupported chain");
         }
     }
 

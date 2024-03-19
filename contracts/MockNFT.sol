@@ -29,6 +29,7 @@ contract MockERC721 is ERC721 {
     uint8 public basePoints;
     uint256 private _nextTokenId;
     string private _defaultImageUrl;
+
     string schema =
         "address TokenBoundAccount,address CurrentOwner,address TokenAddress,uint256 tokenId,uint8 Score,string Description";
 
@@ -51,14 +52,21 @@ contract MockERC721 is ERC721 {
         eas = nftFactory.eas();
     }
 
-    function _attest(address account, address owner, uint256 tokenId, uint8 score, string memory description)
+    /// @dev create a new attestation
+    /// @param to current owner of the token bound account and recipient of the NFT
+    /// @param account The Token Bound Account that receives the attestation
+    /// @param tokenId The id of the SkyBlue NFT
+    /// @param score The score
+    /// @param description The description of the NFT
+    /// @return attestationUID The unique identifier of the attestation
+    function _attest(address to, address account, uint256 tokenId, uint8 score, string memory description)
         internal
         returns (bytes32 attestationUID)
     {
         // "address TokenBoundAccount,address CurrentOwner,address TokenAddress,uint256 tokenId,uint8 Score,string Description";
-        bytes memory data = abi.encode(account, owner, address(this), tokenId, score, description);
+        bytes memory data = abi.encode(account, to, address(this), tokenId, score, description);
         AttestationRequestData memory requestData = AttestationRequestData({
-            recipient: owner,
+            recipient: account,
             expirationTime: 0,
             revocable: true,
             refUID: 0x0,
@@ -74,6 +82,10 @@ contract MockERC721 is ERC721 {
     }
 
     // TODO: access control
+    /// @notice Mint a new NFT and send it to the recipient
+    /// @param to The recipient of the NFT
+    /// @param account The Token Bound Account that receives the attestation
+    /// @param description The description of the NFT
     function safeMint(address to, address account, string memory description) external returns (bytes32) {
         // TODO: check if the recipient already has a token
         // require(balanceOf(to) == 0, "Recipient already has a token");
@@ -91,7 +103,7 @@ contract MockERC721 is ERC721 {
         }
         // create new attestation
         // the recipient of attestation must be the token bound accout
-        bytes32 uid = _attest(account, to, tokenId, basePoints, description);
+        bytes32 uid = _attest(to, account, tokenId, basePoints, description);
 
         require(uid != 0x0, "Attestation failed");
 
