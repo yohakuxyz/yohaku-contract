@@ -8,13 +8,11 @@ import "@openzeppelin/contracts/utils/Base64.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "./NFTFactory.sol";
 
-// TODO: should manage permission
 contract SkyBlue is ERC721, AccessControl {
     using Strings for uint256;
 
     uint256 private _nextTokenId;
     string private _defaultImageUrl;
-    bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
 
     mapping(uint256 => TokenData) private _tokenData;
 
@@ -36,15 +34,18 @@ contract SkyBlue is ERC721, AccessControl {
         _grantRole(MINTER_ROLE, initialOwner);
     }
 
-    function setDefaultImageUrl(string memory defaultImageUrl) public {
+    function setDefaultImageUrl(string memory defaultImageUrl) external onlyAdmin {
         _defaultImageUrl = defaultImageUrl;
     }
 
-    function setImageURL(uint256 tokenId, string memory imageUrl) public onlyAdmin {
+    function setImageURL(uint256 tokenId, string memory imageUrl) external onlyAdmin {
         _tokenData[tokenId].imageUrl = imageUrl;
     }
 
     function safeMint(address to) external onlyMinter {
+        if (balanceOf(to) > 0) {
+            revert CannotHoldMoreThanOneToken(to);
+        }
         uint256 tokenId = _nextTokenId++;
         TokenData memory tokenData = _tokenData[tokenId];
 
@@ -56,6 +57,9 @@ contract SkyBlue is ERC721, AccessControl {
     }
 
     function mintWithMetaData(address to, string memory description, string memory imageUrl) external onlyMinter {
+        if (balanceOf(to) > 0) {
+            revert CannotHoldMoreThanOneToken(to);
+        }
         uint256 tokenId = _nextTokenId++;
         TokenData memory tokenData = _tokenData[tokenId];
         tokenData.owner = to;
