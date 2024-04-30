@@ -6,7 +6,7 @@ import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Burnable.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/utils/Base64.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 
@@ -21,9 +21,11 @@ struct TokenData {
     string imageUrl;
 }
 
-// Mock ERC721 contract for testing purposes
-// https://wizard.openzeppelin.com
-contract MockERC721 is ERC721 {
+error CannotHoldMoreThanOneToken(address owner);
+
+bytes32 constant MINTER_ROLE = keccak256("MINTER_ROLE");
+
+contract MockERC721 is ERC721, AccessControl {
     using Strings for uint256;
 
     uint8 public basePoints;
@@ -43,15 +45,41 @@ contract MockERC721 is ERC721 {
 
     event Minted(address indexed to, address indexed account, bytes32 indexed attestationUID);
 
-    constructor(string memory name, string memory symbol, uint8 _basePoints, NFTFactory _nftFactory)
-        ERC721(name, symbol)
-    {
+    modifier onlyMinter() {
+        require(hasRole(MINTER_ROLE, msg.sender), "Caller is not a minter");
+        _;
+    }
+
+    modifier onlyAdmin() {
+        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Caller is not a admin");
+        _;
+    }
+
+    constructor(
+        string memory name,
+        string memory symbol,
+        uint8 _basePoints,
+        NFTFactory _nftFactory,
+        string memory defaultImageUrl,
+        address initialMinter
+    ) ERC721(name, symbol) {
         nftFactory = _nftFactory;
         basePoints = _basePoints;
+        _defaultImageUrl = defaultImageUrl;
+
+        _grantRole(DEFAULT_ADMIN_ROLE, initialMinter);
+        _grantRole(MINTER_ROLE, initialMinter);
 
         eas = nftFactory.eas();
     }
 
+    function setDefaultImageUrl(string memory defaultImageUrl) external onlyAdmin {
+        _defaultImageUrl = defaultImageUrl;
+    }
+
+    function setImageURL(uint256 tokenId, string memory imageUrl) external onlyAdmin {
+        _tokenData[tokenId].imageUrl = imageUrl;
+    }
     /// @dev create a new attestation
     /// @param to current owner of the token bound account and recipient of the NFT
     /// @param account The Token Bound Account that receives the attestation
@@ -59,6 +87,7 @@ contract MockERC721 is ERC721 {
     /// @param score The score
     /// @param description The description of the NFT
     /// @return attestationUID The unique identifier of the attestation
+
     function _attest(address to, address account, uint256 tokenId, uint8 score, string memory description)
         internal
         returns (bytes32 attestationUID)
@@ -86,9 +115,10 @@ contract MockERC721 is ERC721 {
     /// @param to The recipient of the NFT
     /// @param account The Token Bound Account that receives the attestation
     /// @param description The description of the NFT
-    function safeMint(address to, address account, string memory description) external returns (bytes32) {
-        // TODO: check if the recipient already has a token
-        // require(balanceOf(to) == 0, "Recipient already has a token");
+    function safeMint(address to, address account, string memory description) external onlyMinter returns (bytes32) {
+        if (balanceOf(to) > 0) {
+            revert CannotHoldMoreThanOneToken(to);
+        }
 
         uint256 tokenId = _nextTokenId++;
 
@@ -116,7 +146,7 @@ contract MockERC721 is ERC721 {
         return uid;
     }
 
-    function updatePoints(uint8 newPoints) public {
+    function updatePoints(uint8 newPoints) external onlyAdmin {
         basePoints = newPoints;
     }
 
@@ -168,7 +198,7 @@ contract MockERC721 is ERC721 {
         return super._update(to, tokenId, auth);
     }
 
-    function supportsInterface(bytes4 interfaceId) public view override(ERC721) returns (bool) {
+    function supportsInterface(bytes4 interfaceId) public view override(ERC721, AccessControl) returns (bool) {
         return super.supportsInterface(interfaceId);
     }
 }
