@@ -6,7 +6,6 @@ import "forge-std/console.sol";
 
 import "../contracts/Yohaku.sol";
 import "../contracts//NFTFactory.sol";
-import "../contracts//MockNFT.sol";
 
 contract DeployYohakuNFT is Script {
     address public minter = 0x06aa005386F53Ba7b980c61e0D067CaBc7602a62;

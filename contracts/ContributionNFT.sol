@@ -21,7 +21,7 @@ error CannotHoldMoreThanOneToken(address owner);
 
 bytes32 constant MINTER_ROLE = keccak256("MINTER_ROLE");
 
-contract MockERC721 is ERC721, AccessControl {
+contract ContributionNFT is ERC721, AccessControl {
     using Strings for uint256;
 
     uint8 public basePoints;

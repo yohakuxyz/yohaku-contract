@@ -9,7 +9,7 @@ import {IERC6551Executable} from "erc6551/interfaces/IERC6551Executable.sol";
 import {IEAS, Attestation, AttestationRequest, AttestationRequestData} from "eas-contracts/IEAS.sol";
 import {ISchemaRegistry} from "eas-contracts/ISchemaRegistry.sol";
 
-import "../../contracts/MockNFT.sol";
+import "../../contracts/ContributionNFT.sol";
 import "../../contracts/Registry.sol";
 import "../../contracts/TokenBoundAccount.sol";
 import "../../contracts/Yohaku.sol";
@@ -17,7 +17,7 @@ import "../../contracts/NFTFactory.sol";
 import {AttesterResolver} from "../../contracts/AttesterResolver.sol";
 
 contract TokenBoundAccountTest is Test {
-    MockERC721 public mockERC721;
+    ContributionNFT public mockERC721;
     TokenBoundAccount public implementation;
     Registry public registry;
     NFTFactory public factory;
