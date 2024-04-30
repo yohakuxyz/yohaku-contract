@@ -2,10 +2,6 @@
 pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-import "@openzeppelin/contracts/token/ERC1155/ERC1155.sol";
-import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
-import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Burnable.sol";
-import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/utils/Base64.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
@@ -119,9 +115,23 @@ contract MockERC721 is ERC721, AccessControl {
         if (balanceOf(to) > 0) {
             revert CannotHoldMoreThanOneToken(to);
         }
-
         uint256 tokenId = _nextTokenId++;
 
+        bytes32 uid = _beforeMint(tokenId, to, account, description);
+
+        // send nft to the current owner of token bound account
+        _safeMint(to, tokenId);
+
+        // emit Minted event
+        emit Minted(to, account, uid);
+
+        return uid;
+    }
+
+    function _beforeMint(uint256 tokenId, address to, address account, string memory description)
+        internal
+        returns (bytes32 uid)
+    {
         // store token data
         TokenData memory tokenData = _tokenData[tokenId];
         tokenData.owner = to;
@@ -133,17 +143,37 @@ contract MockERC721 is ERC721, AccessControl {
         }
         // create new attestation
         // the recipient of attestation must be the token bound accout
-        bytes32 uid = _attest(to, account, tokenId, basePoints, description);
+        uid = _attest(to, account, tokenId, basePoints, description);
 
         require(uid != 0x0, "Attestation failed");
 
-        // send nft to the current owner of token bound account
-        _safeMint(to, tokenId);
-
-        // emit Minted event
-        emit Minted(to, account, uid);
-
         return uid;
+    }
+
+    function batchMint(address[] memory to, address[] memory account, string memory description) external onlyMinter {
+        require(to.length == account.length, "to and account length must be equal");
+        for (uint256 i = 0; i < to.length; i++) {
+            uint256 tokenId = _nextTokenId++;
+
+            bytes32 uid = _beforeMint(tokenId, to[i], account[i], description);
+
+            _safeMint(to[i], tokenId);
+
+            // emit Minted event
+            emit Minted(to[i], account[i], uid);
+        }
+    }
+
+    function setEAS(IEAS _eas) external onlyAdmin {
+        eas = _eas;
+    }
+
+    function setNFTFactory(NFTFactory _nftFactory) external onlyAdmin {
+        nftFactory = _nftFactory;
+    }
+
+    function setSchema(string memory _schema) external onlyAdmin {
+        schema = _schema;
     }
 
     function updatePoints(uint8 newPoints) external onlyAdmin {
