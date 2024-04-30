@@ -8,7 +8,7 @@ import "@openzeppelin/contracts/utils/Base64.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "./NFTFactory.sol";
 
-contract SkyBlue is ERC721, AccessControl {
+contract Yohaku is ERC721, AccessControl {
     using Strings for uint256;
 
     uint256 private _nextTokenId;
@@ -28,7 +28,7 @@ contract SkyBlue is ERC721, AccessControl {
         _;
     }
 
-    constructor(address initialOwner, string memory defaultImageUrl) ERC721("SkyBlueNFT", "SKB") {
+    constructor(address initialOwner, string memory defaultImageUrl) ERC721("YohakuNFT", "SKB") {
         _defaultImageUrl = defaultImageUrl;
         _grantRole(DEFAULT_ADMIN_ROLE, initialOwner);
         _grantRole(MINTER_ROLE, initialOwner);
@@ -98,14 +98,14 @@ contract SkyBlue is ERC721, AccessControl {
             tokenId.toString(),
             '"},',
             '{"trait_type": "name", "value": "',
-            "SkyBlueNFT",
+            "YohakuNFT",
             '"}'
         );
 
         string memory imageUrl = bytes(tokenData.imageUrl).length > 0 ? tokenData.imageUrl : _defaultImageUrl;
 
         bytes memory metadata = abi.encodePacked(
-            '{"name": "SkyBlue 2024 #',
+            '{"name": "Yohaku 2024 #',
             tokenId.toString(),
             '", "description": "',
             tokenData.description,

@@ -79,7 +79,7 @@ contract MockERC721 is ERC721, AccessControl {
     /// @dev create a new attestation
     /// @param to current owner of the token bound account and recipient of the NFT
     /// @param account The Token Bound Account that receives the attestation
-    /// @param tokenId The id of the SkyBlue NFT
+    /// @param tokenId The id of the Yohaku NFT
     /// @param score The score
     /// @param description The description of the NFT
     /// @return attestationUID The unique identifier of the attestation
@@ -106,7 +106,6 @@ contract MockERC721 is ERC721, AccessControl {
         return userOwnedToken[_owner];
     }
 
-    // TODO: access control
     /// @notice Mint a new NFT and send it to the recipient
     /// @param to The recipient of the NFT
     /// @param account The Token Bound Account that receives the attestation

@@ -12,7 +12,7 @@ import {ISchemaRegistry} from "eas-contracts/ISchemaRegistry.sol";
 import "../../contracts/MockNFT.sol";
 import "../../contracts/Registry.sol";
 import "../../contracts/TokenBoundAccount.sol";
-import "../../contracts/SkyBlue.sol";
+import "../../contracts/Yohaku.sol";
 import "../../contracts/NFTFactory.sol";
 import {AttesterResolver} from "../../contracts/AttesterResolver.sol";
 
@@ -24,7 +24,7 @@ contract TokenBoundAccountTest is Test {
     AttesterResolver public attesterResolver;
     IEAS public eas;
     ISchemaRegistry public schemaRegistry;
-    SkyBlue public skyblue;
+    Yohaku public yohaku;
     bytes32 public schemaUID;
 
     address public currentPrankee;
@@ -45,7 +45,7 @@ contract TokenBoundAccountTest is Test {
         schemaUID = factory.schemaUID();
         attesterResolver = factory.resolver();
         mockERC721 = factory.createERC721("Mock721", "MOCK", 5, "defaultImage", owner);
-        skyblue = new SkyBlue(owner, "");
+        yohaku = new Yohaku(owner, "");
         implementation = new TokenBoundAccount();
         vm.stopPrank();
     }
@@ -146,7 +146,7 @@ contract TokenBoundAccountTest is Test {
                 address(implementation), //implementation
                 0, //salt,
                 block.chainid, //chainId,
-                address(skyblue), //tokenContract
+                address(yohaku), //tokenContract
                 0 //tokenId
             )
         );
@@ -198,7 +198,7 @@ contract TokenBoundAccountTest is Test {
         address recipient = makeAddr("recipient");
         TokenBoundAccount tba = TokenBoundAccount(payable(account));
         assertEq(tba.owner(), alice);
-        _transferSkyBlue(alice, recipient, 0);
+        _transferYohaku(alice, recipient, 0);
         assertEq(tba.owner(), recipient);
 
         vm.deal(address(tba), 1 ether);
@@ -207,25 +207,25 @@ contract TokenBoundAccountTest is Test {
     }
 
     function _createTBA() internal returns (address) {
-        _mintSkyBlue(alice, "test", "");
+        _mintYohaku(alice, "test", "");
         vm.startPrank(alice);
         address account = registry.createAccount(
             address(implementation), //implementation
             0, //salt,
             block.chainid, //chainId,
-            address(skyblue), //tokenContract
+            address(yohaku), //tokenContract
             0 //tokenId
         );
         assertTrue(account != address(0));
         return account;
     }
 
-    function _mintSkyBlue(address to, string memory description, string memory imageUrl) internal prankception(owner) {
-        skyblue.mintWithMetaData(to, description, imageUrl);
+    function _mintYohaku(address to, string memory description, string memory imageUrl) internal prankception(owner) {
+        yohaku.mintWithMetaData(to, description, imageUrl);
     }
 
-    function _transferSkyBlue(address from, address to, uint256 tokenId) internal prankception(from) {
-        skyblue.safeTransferFrom(from, to, tokenId);
+    function _transferYohaku(address from, address to, uint256 tokenId) internal prankception(from) {
+        yohaku.safeTransferFrom(from, to, tokenId);
     }
 
     function configureChain() public {
