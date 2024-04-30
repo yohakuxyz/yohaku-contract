@@ -48,11 +48,15 @@ contract NFTFactory {
     // owner => tokenAddress => tokenIds
     mapping(address => mapping(address => uint256[])) private _ownedTokens;
 
-    function createERC721(string calldata name, string calldata symbol, uint8 _basePoints)
-        public
-        returns (MockERC721)
-    {
-        MockERC721 nft = new MockERC721(name, symbol, _basePoints, NFTFactory(address(this)));
+    function createERC721(
+        string calldata name,
+        string calldata symbol,
+        uint8 _basePoints,
+        string memory _defaultImageUrl,
+        address initialMinter
+    ) public returns (MockERC721) {
+        MockERC721 nft =
+            new MockERC721(name, symbol, _basePoints, NFTFactory(address(this)), _defaultImageUrl, initialMinter);
         erc721s.push(nft);
         resolver.addAttester(address(nft));
         emit NFTCreated(address(nft));
