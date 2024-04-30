@@ -44,7 +44,7 @@ contract TokenBoundAccountTest is Test {
         factory = factory = new NFTFactory(owner, eas, schemaRegistry);
         schemaUID = factory.schemaUID();
         attesterResolver = factory.resolver();
-        mockERC721 = factory.createERC721("Mock721", "MOCK", 5);
+        mockERC721 = factory.createERC721("Mock721", "MOCK", 5, "defaultImage", owner);
         skyblue = new SkyBlue(owner, "");
         implementation = new TokenBoundAccount();
         vm.stopPrank();
