@@ -30,6 +30,9 @@ contract TokenBoundAccountTest is Test {
     address public currentPrankee;
     address public owner = makeAddr("owner");
     address public alice = makeAddr("alice");
+    address public bob = makeAddr("bob");
+    address public charlie = makeAddr("charlie");
+
     string schema =
         "address TokenBoundAccount,address CurrentOwner,address TokenAddress,uint256 tokenId,uint8 Score,string Description";
 
@@ -49,6 +52,7 @@ contract TokenBoundAccountTest is Test {
         implementation = new TokenBoundAccount();
         vm.stopPrank();
     }
+    /* -------------- EAS Test ----------------- */
 
     function testAttestManual() external {
         address account = _createTBA();
@@ -88,7 +92,6 @@ contract TokenBoundAccountTest is Test {
         vm.stopPrank();
     }
 
-    // EAS test
     function testMintERC721() external {
         address account = _createTBA();
 
@@ -136,7 +139,7 @@ contract TokenBoundAccountTest is Test {
         vm.stopPrank();
     }
 
-    // TBA test
+    /* -------------- TBA Test ----------------- */
     function testCreateAccount() external {
         address account = _createTBA();
 
@@ -169,7 +172,7 @@ contract TokenBoundAccountTest is Test {
         vm.stopPrank();
     }
 
-    // revert test
+    /* -------------- Revert Test ----------------- */
 
     function testRevertInvalidAttester() external {
         address account = _createTBA();
@@ -219,6 +222,34 @@ contract TokenBoundAccountTest is Test {
         assertTrue(account != address(0));
         return account;
     }
+
+    /* -------------- Yohaku Test ----------------- */
+
+    function testTokenURI() public {
+        _mintYohaku(alice, "test", "");
+        console.log(yohaku.tokenURI(0));
+    }
+
+    function testTransferOwnership() public {
+        _mintYohaku(alice, "test", "");
+
+        vm.prank(alice);
+        yohaku.approve(address(this), 0);
+        yohaku.safeTransferFrom(alice, bob, 0);
+
+        address[] memory owners = new address[](2);
+        owners[0] = alice;
+        owners[1] = bob;
+
+        assertEq(yohaku.getOwners(0), owners);
+        assertEq(yohaku.ownerOf(0), bob);
+    }
+
+    function testSafeMint() public {
+        _mintYohaku(alice, "test", "");
+        assertEq(yohaku.ownerOf(0), alice);
+    }
+    /* -------------------------------------------- */
 
     function _mintYohaku(address to, string memory description, string memory imageUrl) internal prankception(owner) {
         yohaku.mintWithMetaData(to, description, imageUrl);
