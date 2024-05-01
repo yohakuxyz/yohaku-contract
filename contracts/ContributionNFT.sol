@@ -11,17 +11,17 @@ import {ISchemaRegistry} from "eas-contracts/ISchemaRegistry.sol";
 
 import "./NFTFactory.sol";
 
-struct TokenData {
-    address owner;
-    string description;
-    string imageUrl;
-}
-
-error CannotHoldMoreThanOneToken(address owner);
-
-bytes32 constant MINTER_ROLE = keccak256("MINTER_ROLE");
-
 contract ContributionNFT is ERC721, AccessControl {
+    struct TokenData {
+        address owner;
+        string description;
+        string imageUrl;
+    }
+
+    error CannotHoldMoreThanOneToken(address owner);
+
+    bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
+
     using Strings for uint256;
 
     uint8 public basePoints;
