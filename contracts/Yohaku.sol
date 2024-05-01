@@ -6,7 +6,6 @@ import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/utils/Base64.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
-import "./NFTFactory.sol";
 
 contract Yohaku is ERC721, AccessControl {
     using Strings for uint256;
@@ -14,7 +13,17 @@ contract Yohaku is ERC721, AccessControl {
     uint256 private _nextTokenId;
     string private _defaultImageUrl;
 
-    mapping(uint256 => TokenData) private _tokenData;
+    struct TokenData {
+        address owner;
+        string description;
+        string imageUrl;
+    }
+
+    error CannotHoldMoreThanOneToken(address owner);
+
+    bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
+
+    mapping(uint256 => TokenData) public _tokenData;
 
     mapping(uint256 => address[]) public previousOwners;
 
@@ -42,35 +51,27 @@ contract Yohaku is ERC721, AccessControl {
         _tokenData[tokenId].imageUrl = imageUrl;
     }
 
-    function safeMint(address to) external onlyMinter {
+    function safeMint(address to, string memory description, string memory imageUrl)
+        external
+        onlyMinter
+        returns (TokenData memory)
+    {
         if (balanceOf(to) > 0) {
             revert CannotHoldMoreThanOneToken(to);
         }
         uint256 tokenId = _nextTokenId++;
-        TokenData memory tokenData = _tokenData[tokenId];
 
-        if (bytes(tokenData.imageUrl).length == 0) {
-            tokenData.imageUrl = _defaultImageUrl;
-        }
+        TokenData memory newTokenData = TokenData({
+            owner: to,
+            description: description,
+            imageUrl: bytes(imageUrl).length > 0 ? imageUrl : _defaultImageUrl
+        });
 
-        _safeMint(to, tokenId);
-    }
-
-    function mintWithMetaData(address to, string memory description, string memory imageUrl) external onlyMinter {
-        if (balanceOf(to) > 0) {
-            revert CannotHoldMoreThanOneToken(to);
-        }
-        uint256 tokenId = _nextTokenId++;
-        TokenData memory tokenData = _tokenData[tokenId];
-        tokenData.owner = to;
-        tokenData.description = description;
-        tokenData.imageUrl = imageUrl;
-
-        if (bytes(tokenData.imageUrl).length == 0) {
-            tokenData.imageUrl = _defaultImageUrl;
-        }
+        _tokenData[tokenId] = newTokenData;
 
         _safeMint(to, tokenId);
+
+        return newTokenData;
     }
 
     function setMinter(address _minter) public onlyAdmin {
