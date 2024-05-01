@@ -28,7 +28,7 @@ contract Yohaku is ERC721, AccessControl {
         _;
     }
 
-    constructor(address initialOwner, string memory defaultImageUrl) ERC721("YohakuNFT", "SKB") {
+    constructor(address initialOwner, string memory defaultImageUrl) ERC721("YohakuNFT", "YHK") {
         _defaultImageUrl = defaultImageUrl;
         _grantRole(DEFAULT_ADMIN_ROLE, initialOwner);
         _grantRole(MINTER_ROLE, initialOwner);
