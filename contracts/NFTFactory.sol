@@ -10,11 +10,11 @@ import {ISchemaRegistry} from "eas-contracts/ISchemaRegistry.sol";
 import {SchemaResolver} from "eas-contracts/resolver/SchemaResolver.sol";
 import {ISchemaResolver} from "eas-contracts/resolver/ISchemaResolver.sol";
 import "./AttesterResolver.sol";
-import "./MockNFT.sol";
+import "./ContributionNFT.sol";
 
 contract NFTFactory {
     bytes32 public schemaUID;
-    MockERC721[] public erc721s;
+    ContributionNFT[] public erc721s;
     IEAS public eas;
     AttesterResolver public resolver;
 
@@ -48,18 +48,22 @@ contract NFTFactory {
     // owner => tokenAddress => tokenIds
     mapping(address => mapping(address => uint256[])) private _ownedTokens;
 
-    function createERC721(string calldata name, string calldata symbol, uint8 _basePoints)
-        public
-        returns (MockERC721)
-    {
-        MockERC721 nft = new MockERC721(name, symbol, _basePoints, NFTFactory(address(this)));
+    function createERC721(
+        string calldata name,
+        string calldata symbol,
+        uint8 _basePoints,
+        string memory _defaultImageUrl,
+        address initialMinter
+    ) public returns (ContributionNFT) {
+        ContributionNFT nft =
+            new ContributionNFT(name, symbol, _basePoints, NFTFactory(address(this)), _defaultImageUrl, initialMinter);
         erc721s.push(nft);
         resolver.addAttester(address(nft));
         emit NFTCreated(address(nft));
         return nft;
     }
 
-    function getCreatedERC721s() public view returns (MockERC721[] memory) {
+    function getCreatedERC721s() public view returns (ContributionNFT[] memory) {
         return erc721s;
     }
 }

@@ -2,15 +2,14 @@
   "scripts": {
     "compile": "forge compile",
     "build": "forge build",
-    "test:skyblue": "forge fmt && forge test --match-path test/foundry/SkyBlue.t.sol",
     "test:coverage": "forge coverage",
-    "test:tba-mumbai": "forge fmt && forge test --fork-url $POLYGON_MUMBAI_RPC_URL --match-path test/foundry/TokenBoundAccount.t.sol",
-    "test:tba-polygon": "forge fmt && forge test --fork-url $POLYGON_POS_RPC_URL --match-path test/foundry/TokenBoundAccount.t.sol",
-    "test:tba-op": "forge fmt && forge test --fork-url $OPTIMISM_MAINNET_RPC_URL --match-path test/foundry/TokenBoundAccount.t.sol",
-    "deploy:nft-mumbai": "pnpm deploy:skyblue-mumbai && pnpm deploy:factory-mumbai",
-    "deploy:skyblue-mumbai": "forge fmt && forge script script/SkyBlueNFT.s.sol --rpc-url $POLYGON_MUMBAI_RPC_URL --broadcast -vvvv --private-key $DEPLOYER_PRIVATE_KEY --etherscan-api-key $API_KEY_POLYGONSCAN --verify",
+    "test:mumbai": "forge fmt && forge test --fork-url $POLYGON_MUMBAI_RPC_URL --match-path test/foundry/TokenBoundAccount.t.sol",
+    "test:polygon": "forge fmt && forge test --fork-url $POLYGON_POS_RPC_URL --match-path test/foundry/TokenBoundAccount.t.sol",
+    "test:op": "forge fmt && forge test --fork-url $OPTIMISM_MAINNET_RPC_URL --match-path test/foundry/TokenBoundAccount.t.sol",
+    "deploy:nft-mumbai": "pnpm deploy:Yohaku-mumbai && pnpm deploy:factory-mumbai",
+    "deploy:yohaku-mumbai": "forge fmt && forge script script/YohakuNFT.s.sol --rpc-url $POLYGON_MUMBAI_RPC_URL --broadcast -vvvv --private-key $DEPLOYER_PRIVATE_KEY --etherscan-api-key $API_KEY_POLYGONSCAN --verify",
     "deploy:factory-mumbai": "forge fmt && forge script script/NFTFactory.s.sol --rpc-url $POLYGON_MUMBAI_RPC_URL --broadcast -vvvv --private-key $DEPLOYER_PRIVATE_KEY --etherscan-api-key $API_KEY_POLYGONSCAN --verify",
-    "deploy:skyblue-polygon": "forge fmt && forge script script/SkyBlueNFT.s.sol --rpc-url $POLYGON_POS_RPC_URL --broadcast -vvvv --private-key $DEPLOYER_PRIVATE_KEY --etherscan-api-key $API_KEY_POLYGONSCAN --verify",
+    "deploy:yohaku-polygon": "forge fmt && forge script script/YohakuNFT.s.sol --rpc-url $POLYGON_POS_RPC_URL --broadcast -vvvv --private-key $DEPLOYER_PRIVATE_KEY --etherscan-api-key $API_KEY_POLYGONSCAN --verify",
     "deploy:factory-polygon": "forge fmt && forge script script/NFTFactory.s.sol --rpc-url $POLYGON_POS_RPC_URL --broadcast -vvvv --private-key $DEPLOYER_PRIVATE_KEY --etherscan-api-key $API_KEY_POLYGONSCAN --verify",
     "format": "forge fmt",
     "clean": "rm -rf cache out"
@@ -18,7 +17,7 @@
   "devDependencies": {
     "@nomicfoundation/hardhat-foundry": "^1.1.1",
     "@nomicfoundation/hardhat-toolbox": "^4.0.0",
-    "hardhat": "^2.20.1"
+    "hardhat": "^2.22.3"
   },
   "dependencies": {
     "dotenv": "^16.4.5"
