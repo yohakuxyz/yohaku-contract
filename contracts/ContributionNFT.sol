@@ -11,14 +11,14 @@ import {ISchemaRegistry} from "eas-contracts/ISchemaRegistry.sol";
 
 import "./NFTFactory.sol";
 
+error CannotHoldMoreThanOneToken(address owner);
+
 contract ContributionNFT is ERC721, AccessControl {
     struct TokenData {
         address owner;
         string description;
         string imageUrl;
     }
-
-    error CannotHoldMoreThanOneToken(address owner);
 
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
 
@@ -111,9 +111,6 @@ contract ContributionNFT is ERC721, AccessControl {
     /// @param account The Token Bound Account that receives the attestation
     /// @param description The description of the NFT
     function safeMint(address to, address account, string memory description) external onlyMinter returns (bytes32) {
-        if (balanceOf(to) > 0) {
-            revert CannotHoldMoreThanOneToken(to);
-        }
         uint256 tokenId = _nextTokenId++;
 
         bytes32 uid = _beforeMint(tokenId, to, account, description);
@@ -131,6 +128,9 @@ contract ContributionNFT is ERC721, AccessControl {
         internal
         returns (bytes32 uid)
     {
+        if (balanceOf(to) > 0) {
+            revert CannotHoldMoreThanOneToken(to);
+        }
         // store token data
         TokenData memory tokenData = _tokenData[tokenId];
         tokenData.owner = to;

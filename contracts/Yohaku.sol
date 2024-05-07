@@ -7,6 +7,8 @@ import "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/utils/Base64.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 
+error CannnotHoldMoreThanOneYohakuNFT(address owner);
+
 contract Yohaku is ERC721, AccessControl {
     using Strings for uint256;
 
@@ -18,8 +20,6 @@ contract Yohaku is ERC721, AccessControl {
         string description;
         string imageUrl;
     }
-
-    error CannotHoldMoreThanOneToken(address owner);
 
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
 
@@ -57,7 +57,7 @@ contract Yohaku is ERC721, AccessControl {
         returns (TokenData memory)
     {
         if (balanceOf(to) > 0) {
-            revert CannotHoldMoreThanOneToken(to);
+            revert CannnotHoldMoreThanOneYohakuNFT(to);
         }
         uint256 tokenId = _nextTokenId++;
 

@@ -40,7 +40,7 @@ contract TokenBoundAccountTest is Test {
     event AttesterAdded(address indexed NewAttester);
     event Attested(address indexed recipient, address indexed attester, bytes32 uid, bytes32 indexed schemaUID);
 
-    function setUp() public {
+    function setUp() external {
         configureChain();
         vm.startPrank(owner);
         registry = new Registry();
@@ -55,7 +55,7 @@ contract TokenBoundAccountTest is Test {
     /* -------------- EAS Test ----------------- */
 
     function testAttestManual() external {
-        address account = _createTBA();
+        address account = _createTBA(alice);
         vm.startPrank(owner);
         bytes memory _data = abi.encode(account, alice, mockERC721, 0, 5, "test");
 
@@ -93,7 +93,7 @@ contract TokenBoundAccountTest is Test {
     }
 
     function testMintERC721() external {
-        address account = _createTBA();
+        address account = _createTBA(alice);
 
         vm.startPrank(owner);
         vm.expectEmit(true, true, false, false);
@@ -121,7 +121,7 @@ contract TokenBoundAccountTest is Test {
     }
 
     function testAttestedEvent() external {
-        address account = _createTBA();
+        address account = _createTBA(alice);
 
         vm.startPrank(owner);
         vm.expectEmit(true, true, true, false);
@@ -141,7 +141,7 @@ contract TokenBoundAccountTest is Test {
 
     /* -------------- TBA Test ----------------- */
     function testCreateAccount() external {
-        address account = _createTBA();
+        address account = _createTBA(alice);
 
         assertEq(
             account,
@@ -157,7 +157,7 @@ contract TokenBoundAccountTest is Test {
 
     function testSendTransaction() external {
         address recipient = makeAddr("recipient");
-        address account = _createTBA();
+        address account = _createTBA(alice);
 
         IERC6551Account accountInstance = IERC6551Account(payable(account));
         IERC6551Executable executableAccountInstance = IERC6551Executable(account);
@@ -175,7 +175,7 @@ contract TokenBoundAccountTest is Test {
     /* -------------- Revert Test ----------------- */
 
     function testRevertInvalidAttester() external {
-        address account = _createTBA();
+        address account = _createTBA(alice);
         vm.startPrank(alice);
         bytes memory _data = abi.encode(account, owner, mockERC721, 0, 5, "test");
 
@@ -197,7 +197,7 @@ contract TokenBoundAccountTest is Test {
 
     function testRevertInvalidSigner() external {
         vm.startPrank(owner);
-        address account = _createTBA();
+        address account = _createTBA(alice);
         address recipient = makeAddr("recipient");
         TokenBoundAccount tba = TokenBoundAccount(payable(account));
         assertEq(tba.owner(), alice);
@@ -209,28 +209,73 @@ contract TokenBoundAccountTest is Test {
         tba.execute(payable(address(0)), 0.5 ether, "", 0);
     }
 
-    function _createTBA() internal returns (address) {
-        _mintYohaku(alice, "test", "");
+    function testRevertCallerIsNotYohakuMinter() external {
         vm.startPrank(alice);
-        address account = registry.createAccount(
-            address(implementation), //implementation
-            0, //salt,
-            block.chainid, //chainId,
-            address(yohaku), //tokenContract
-            0 //tokenId
-        );
-        assertTrue(account != address(0));
-        return account;
+
+        assertEq(yohaku.hasRole(yohaku.MINTER_ROLE(), owner), true);
+        assertEq(yohaku.hasRole(yohaku.MINTER_ROLE(), alice), false);
+
+        vm.expectRevert("Caller is not a minter");
+        yohaku.safeMint(alice, "test", "");
+        vm.stopPrank();
+    }
+
+    function testRevertCallerIsNotMockERC721Minter() external {
+        address account = _createTBA(alice);
+        vm.startPrank(alice);
+
+        assertEq(mockERC721.hasRole(mockERC721.MINTER_ROLE(), owner), true);
+        assertEq(mockERC721.hasRole(mockERC721.MINTER_ROLE(), alice), false);
+
+        vm.expectRevert("Caller is not a minter");
+        mockERC721.safeMint(alice, account, "");
+        vm.stopPrank();
+    }
+
+    function testRevertCannotHoldMoreThanOneToken() external {
+        address aliceAccount = _createTBA(alice);
+
+        address[] memory recipients = new address[](2);
+        recipients[0] = alice;
+        recipients[1] = alice;
+
+        address[] memory accounts = new address[](2);
+        accounts[0] = aliceAccount;
+        accounts[1] = aliceAccount;
+
+        vm.startPrank(owner);
+
+        vm.expectRevert(abi.encodeWithSelector(CannotHoldMoreThanOneToken.selector, alice));
+        mockERC721.batchMint(recipients, accounts, "batchmint");
+
+        vm.stopPrank();
+    }
+
+    function testRevertCannotHoldMoreThanOneYohakuNFT() external {
+        _mintYohaku(alice, "", "");
+        vm.startPrank(owner);
+
+        vm.expectRevert(abi.encodeWithSelector(CannnotHoldMoreThanOneYohakuNFT.selector, alice));
+        _mintYohaku(alice, "", "");
+
+        vm.stopPrank();
     }
 
     /* -------------- Yohaku Test ----------------- */
 
-    function testTokenURI() public {
-        _mintYohaku(alice, "test", "");
-        console.log(yohaku.tokenURI(0));
+    function testSetDefaultImage() external {
+        vm.startPrank(owner);
+        yohaku.setDefaultImageUrl("defaultImage");
+        Yohaku.TokenData memory token = yohaku.safeMint(alice, "test", "");
+
+        assertEq(token.owner, alice);
+        assertEq(token.description, "test");
+        assertEq(token.imageUrl, "defaultImage");
+
+        vm.stopPrank();
     }
 
-    function testTransferOwnership() public {
+    function testTransferOwnership() external {
         _mintYohaku(alice, "test", "");
 
         vm.prank(alice);
@@ -245,14 +290,51 @@ contract TokenBoundAccountTest is Test {
         assertEq(yohaku.ownerOf(0), bob);
     }
 
-    function testSafeMint() public {
+    function testSafeMint() external {
         _mintYohaku(alice, "test", "");
         assertEq(yohaku.ownerOf(0), alice);
     }
-    /* -------------------------------------------- */
+
+    function testBatchMint() external {
+        address aliceAccount = _createTBA(alice);
+        address bobAccount = _createTBA(bob);
+
+        address[] memory recipients = new address[](2);
+        recipients[0] = alice;
+        recipients[1] = bob;
+
+        address[] memory accounts = new address[](2);
+        accounts[0] = aliceAccount;
+        accounts[1] = bobAccount;
+
+        vm.startPrank(owner);
+
+        mockERC721.batchMint(recipients, accounts, "batchmint");
+
+        assertEq(mockERC721.ownerOf(0), alice);
+        assertEq(mockERC721.ownerOf(1), bob);
+
+        vm.stopPrank();
+    }
+
+    /* -------------- Internal Functions ----------------- */
+
+    function _createTBA(address recipient) internal returns (address) {
+        _mintYohaku(recipient, "test", "");
+        vm.startPrank(recipient);
+        address account = registry.createAccount(
+            address(implementation), //implementation
+            0, //salt,
+            block.chainid, //chainId,
+            address(yohaku), //tokenContract
+            0 //tokenId
+        );
+        assertTrue(account != address(0));
+        return account;
+    }
 
     function _mintYohaku(address to, string memory description, string memory imageUrl) internal prankception(owner) {
-        yohaku.mintWithMetaData(to, description, imageUrl);
+        yohaku.safeMint(to, description, imageUrl);
     }
 
     function _transferYohaku(address from, address to, uint256 tokenId) internal prankception(from) {
