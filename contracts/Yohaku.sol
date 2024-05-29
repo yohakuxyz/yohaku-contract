@@ -15,6 +15,8 @@ contract Yohaku is ERC721, AccessControl {
     uint256 private _nextTokenId;
     string private _defaultImageUrl;
 
+    string public description;
+
     struct TokenData {
         address owner;
         string description;
@@ -37,8 +39,11 @@ contract Yohaku is ERC721, AccessControl {
         _;
     }
 
-    constructor(address initialOwner, string memory defaultImageUrl) ERC721("YohakuNFT", "YHK") {
+    constructor(address initialOwner, string memory _description, string memory defaultImageUrl)
+        ERC721("YohakuNFT", "YHK")
+    {
         _defaultImageUrl = defaultImageUrl;
+        description = _description;
         _grantRole(DEFAULT_ADMIN_ROLE, initialOwner);
         _grantRole(MINTER_ROLE, initialOwner);
     }
@@ -51,11 +56,7 @@ contract Yohaku is ERC721, AccessControl {
         _tokenData[tokenId].imageUrl = imageUrl;
     }
 
-    function safeMint(address to, string memory description, string memory imageUrl)
-        external
-        onlyMinter
-        returns (TokenData memory)
-    {
+    function safeMint(address to, string memory imageUrl) external onlyMinter returns (TokenData memory) {
         if (balanceOf(to) > 0) {
             revert CannnotHoldMoreThanOneYohakuNFT(to);
         }

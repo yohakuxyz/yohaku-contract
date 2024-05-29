@@ -48,7 +48,7 @@ contract TokenBoundAccountTest is Test {
         schemaUID = factory.schemaUID();
         attesterResolver = factory.resolver();
         mockERC721 = factory.createERC721("Mock721", "MOCK", 5, "defaultImage", owner);
-        yohaku = new Yohaku(owner, "");
+        yohaku = new Yohaku(owner, "", "");
         implementation = new TokenBoundAccount();
         vm.stopPrank();
     }
@@ -216,7 +216,7 @@ contract TokenBoundAccountTest is Test {
         assertEq(yohaku.hasRole(yohaku.MINTER_ROLE(), alice), false);
 
         vm.expectRevert("Caller is not a minter");
-        yohaku.safeMint(alice, "test", "");
+        yohaku.safeMint(alice, "");
         vm.stopPrank();
     }
 
@@ -252,11 +252,11 @@ contract TokenBoundAccountTest is Test {
     }
 
     function testRevertCannotHoldMoreThanOneYohakuNFT() external {
-        _mintYohaku(alice, "", "");
+        _mintYohaku(alice, "");
         vm.startPrank(owner);
 
         vm.expectRevert(abi.encodeWithSelector(CannnotHoldMoreThanOneYohakuNFT.selector, alice));
-        _mintYohaku(alice, "", "");
+        _mintYohaku(alice, "");
 
         vm.stopPrank();
     }
@@ -266,7 +266,7 @@ contract TokenBoundAccountTest is Test {
     function testSetDefaultImage() external {
         vm.startPrank(owner);
         yohaku.setDefaultImageUrl("defaultImage");
-        Yohaku.TokenData memory token = yohaku.safeMint(alice, "test", "");
+        Yohaku.TokenData memory token = yohaku.safeMint(alice, "");
 
         assertEq(token.owner, alice);
         assertEq(token.description, "test");
@@ -276,7 +276,7 @@ contract TokenBoundAccountTest is Test {
     }
 
     function testTransferOwnership() external {
-        _mintYohaku(alice, "test", "");
+        _mintYohaku(alice, "");
 
         vm.prank(alice);
         yohaku.approve(address(this), 0);
@@ -291,7 +291,7 @@ contract TokenBoundAccountTest is Test {
     }
 
     function testSafeMint() external {
-        _mintYohaku(alice, "test", "");
+        _mintYohaku(alice, "");
         assertEq(yohaku.ownerOf(0), alice);
     }
 
@@ -320,7 +320,7 @@ contract TokenBoundAccountTest is Test {
     /* -------------- Internal Functions ----------------- */
 
     function _createTBA(address recipient) internal returns (address) {
-        _mintYohaku(recipient, "test", "");
+        _mintYohaku(recipient, "");
         vm.startPrank(recipient);
         address account = registry.createAccount(
             address(implementation), //implementation
@@ -333,8 +333,8 @@ contract TokenBoundAccountTest is Test {
         return account;
     }
 
-    function _mintYohaku(address to, string memory description, string memory imageUrl) internal prankception(owner) {
-        yohaku.safeMint(to, description, imageUrl);
+    function _mintYohaku(address to, string memory imageUrl) internal prankception(owner) {
+        yohaku.safeMint(to, imageUrl);
     }
 
     function _transferYohaku(address from, address to, uint256 tokenId) internal prankception(from) {

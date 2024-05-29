@@ -22,7 +22,7 @@ contract TokenBoundAccountSctipt is Script {
         vm.startBroadcast();
         factory = new NFTFactory(owner, eas, schemaRegistry);
         Registry registry = new Registry();
-        Yohaku yohaku = new Yohaku(owner, "QmYRmop52xSAmUC5J5squPrkyu6HtGwQc6yqQNze5q5S8v");
+        Yohaku yohaku = new Yohaku(owner, "Yohaku", "QmYRmop52xSAmUC5J5squPrkyu6HtGwQc6yqQNze5q5S8v");
         TokenBoundAccount implementation = new TokenBoundAccount();
         vm.stopBroadcast();
 
