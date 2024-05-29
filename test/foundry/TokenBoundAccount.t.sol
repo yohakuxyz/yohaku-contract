@@ -48,7 +48,7 @@ contract TokenBoundAccountTest is Test {
         schemaUID = factory.schemaUID();
         attesterResolver = factory.resolver();
         mockERC721 = factory.createERC721("Mock721", "MOCK", 5, "defaultImage", owner);
-        yohaku = new Yohaku(owner, "", "");
+        yohaku = new Yohaku(owner, "Yohaku NFT is built for community", "defaultImage");
         implementation = new TokenBoundAccount();
         vm.stopPrank();
     }
@@ -263,14 +263,21 @@ contract TokenBoundAccountTest is Test {
 
     /* -------------- Yohaku Test ----------------- */
 
-    function testSetDefaultImage() external {
+    function testImageUrl() external {
         vm.startPrank(owner);
-        yohaku.setDefaultImageUrl("defaultImage");
-        Yohaku.TokenData memory token = yohaku.safeMint(alice, "");
+        Yohaku.TokenData memory aliceToken = yohaku.safeMint(alice, "Image");
+        Yohaku.TokenData memory beforeBobToken = yohaku.safeMint(bob, "");
 
-        assertEq(token.owner, alice);
-        assertEq(token.description, "test");
-        assertEq(token.imageUrl, "defaultImage");
+        assertEq(aliceToken.owner, alice);
+        assertEq(aliceToken.description, "Yohaku NFT is built for community");
+
+        assertEq(aliceToken.imageUrl, "Image");
+        assertEq(beforeBobToken.imageUrl, "");
+
+        yohaku.setDefaultImageUrl("newImage");
+        Yohaku.TokenData memory afterBobToken = yohaku.getTokenData(1);
+        assertEq(aliceToken.imageUrl, "Image");
+        assertEq(afterBobToken.imageUrl, "");
 
         vm.stopPrank();
     }
