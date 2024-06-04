@@ -18,6 +18,9 @@ contract DeployNFTFactory is Script {
         } else if (block.chainid == 137) {
             eas = IEAS(0x5E634ef5355f45A855d02D66eCD687b1502AF790);
             schemaRegistry = ISchemaRegistry(0x7876EEF51A891E737AF8ba5A5E0f0Fd29073D5a7);
+        } else if (block.chainid == 10) {
+            eas = IEAS(0x4200000000000000000000000000000000000021);
+            schemaRegistry = ISchemaRegistry(0x4200000000000000000000000000000000000020);
         } else {
             revert("Unsupported chain");
         }
