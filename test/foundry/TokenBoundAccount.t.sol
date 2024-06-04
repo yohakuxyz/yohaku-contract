@@ -10,11 +10,11 @@ import {IEAS, Attestation, AttestationRequest, AttestationRequestData} from "eas
 import {ISchemaRegistry} from "eas-contracts/ISchemaRegistry.sol";
 
 import "../../contracts/ContributionNFT.sol";
-import "../../contracts/Registry.sol";
-import "../../contracts/TokenBoundAccount.sol";
+import "../../contracts/TBA/Registry.sol";
+import "../../contracts/TBA/TokenBoundAccount.sol";
 import "../../contracts/Yohaku.sol";
 import "../../contracts/NFTFactory.sol";
-import {AttesterResolver} from "../../contracts/AttesterResolver.sol";
+import {AttesterResolver} from "../../contracts/EAS/AttesterResolver.sol";
 
 contract TokenBoundAccountTest is Test {
     ContributionNFT public mockERC721;
