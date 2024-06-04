@@ -5,8 +5,8 @@ import {Script, console2} from "forge-std/Script.sol";
 import {ISchemaRegistry} from "eas-contracts/ISchemaRegistry.sol";
 import {IEAS} from "eas-contracts/IEAS.sol";
 import "../contracts/Yohaku.sol";
-import "../contracts/Registry.sol";
-import "../contracts/TokenBoundAccount.sol";
+import "../contracts/TBA/Registry.sol";
+import "../contracts/TBA/TokenBoundAccount.sol";
 import "../contracts/NFTFactory.sol";
 
 // forge script script/TokenBoundAccount.s.sol:TokenBoundAccountSctipt --rpc-url $OPTIMISM_SEPOLIA_RPC_URL --broadcast -vvvv --private-key $DEPLOYER_PRIVATE_KEY --etherscan-api-key $API_KEY_OPTIMISTIC_ETHERSCAN --verify
@@ -22,7 +22,7 @@ contract TokenBoundAccountSctipt is Script {
         vm.startBroadcast();
         factory = new NFTFactory(owner, eas, schemaRegistry);
         Registry registry = new Registry();
-        Yohaku yohaku = new Yohaku(owner, "QmYRmop52xSAmUC5J5squPrkyu6HtGwQc6yqQNze5q5S8v");
+        Yohaku yohaku = new Yohaku(owner, "Yohaku", "QmYRmop52xSAmUC5J5squPrkyu6HtGwQc6yqQNze5q5S8v");
         TokenBoundAccount implementation = new TokenBoundAccount();
         vm.stopBroadcast();
 

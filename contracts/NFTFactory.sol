@@ -9,7 +9,7 @@ import {IEAS, Attestation} from "eas-contracts/IEAS.sol";
 import {ISchemaRegistry} from "eas-contracts/ISchemaRegistry.sol";
 import {SchemaResolver} from "eas-contracts/resolver/SchemaResolver.sol";
 import {ISchemaResolver} from "eas-contracts/resolver/ISchemaResolver.sol";
-import "./AttesterResolver.sol";
+import "./EAS/AttesterResolver.sol";
 import "./ContributionNFT.sol";
 
 contract NFTFactory {

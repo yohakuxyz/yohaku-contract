@@ -5,7 +5,7 @@ import {Script, console2} from "forge-std/Script.sol";
 import {IEAS, Attestation} from "eas-contracts/IEAS.sol";
 import {ISchemaRegistry} from "eas-contracts/ISchemaRegistry.sol";
 
-import "../contracts/AttesterResolver.sol";
+import "../contracts/EAS/AttesterResolver.sol";
 
 contract SchemaResolverSctipt is Script {
     address minter = 0x06aa005386F53Ba7b980c61e0D067CaBc7602a62;

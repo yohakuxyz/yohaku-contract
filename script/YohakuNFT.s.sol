@@ -12,7 +12,7 @@ contract DeployYohakuNFT is Script {
 
     function run() external {
         vm.startBroadcast();
-        Yohaku yohaku = new Yohaku(minter, "QmYRmop52xSAmUC5J5squPrkyu6HtGwQc6yqQNze5q5S8v");
+        Yohaku yohaku = new Yohaku(minter, "Yohaku", "QmYRmop52xSAmUC5J5squPrkyu6HtGwQc6yqQNze5q5S8v");
         console.log("Yohaku address: ", address(yohaku));
         vm.stopBroadcast();
     }

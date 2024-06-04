@@ -1,7 +1,7 @@
 {
   "scripts": {
     "compile": "forge compile",
-    "build": "forge build",
+    "build": "forge fmt && forge build",
     "test:coverage": "forge coverage",
     "test:mumbai": "forge fmt && forge test --fork-url $POLYGON_MUMBAI_RPC_URL --match-path test/foundry/TokenBoundAccount.t.sol",
     "test:polygon": "forge fmt && forge test --fork-url $POLYGON_POS_RPC_URL --match-path test/foundry/TokenBoundAccount.t.sol",

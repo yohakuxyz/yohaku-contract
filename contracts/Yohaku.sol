@@ -15,6 +15,8 @@ contract Yohaku is ERC721, AccessControl {
     uint256 private _nextTokenId;
     string private _defaultImageUrl;
 
+    string public description;
+
     struct TokenData {
         address owner;
         string description;
@@ -37,8 +39,11 @@ contract Yohaku is ERC721, AccessControl {
         _;
     }
 
-    constructor(address initialOwner, string memory defaultImageUrl) ERC721("YohakuNFT", "YHK") {
+    constructor(address initialOwner, string memory _description, string memory defaultImageUrl)
+        ERC721("YohakuNFT", "YHK")
+    {
         _defaultImageUrl = defaultImageUrl;
+        description = _description;
         _grantRole(DEFAULT_ADMIN_ROLE, initialOwner);
         _grantRole(MINTER_ROLE, initialOwner);
     }
@@ -51,26 +56,30 @@ contract Yohaku is ERC721, AccessControl {
         _tokenData[tokenId].imageUrl = imageUrl;
     }
 
-    function safeMint(address to, string memory description, string memory imageUrl)
-        external
-        onlyMinter
-        returns (TokenData memory)
-    {
+    /// @notice Mint a new NFT to the given address
+    /// @dev The caller must have the MINTER_ROLE. If 'imageUrl' is empty,
+    /// the default image URL will be used when tokenURI() is called, and store empty string in the tokenData mapping.
+    /// @dev Each address can hold only one Token, if the address already holds a token, it will be reverted.
+    /// @param to The address to mint the NFT to
+    /// @param imageUrl The URL of the image to be displayed
+    /// @return The TokenData struct of the minted token
+    function safeMint(address to, string memory imageUrl) external onlyMinter returns (TokenData memory) {
+        // revert if the address already holds a token
         if (balanceOf(to) > 0) {
             revert CannnotHoldMoreThanOneYohakuNFT(to);
         }
+
+        // increment the next token ID
         uint256 tokenId = _nextTokenId++;
 
-        TokenData memory newTokenData = TokenData({
-            owner: to,
-            description: description,
-            imageUrl: bytes(imageUrl).length > 0 ? imageUrl : _defaultImageUrl
-        });
-
+        // create a new TokenData struct and store it in the mapping
+        TokenData memory newTokenData = TokenData({owner: to, description: description, imageUrl: imageUrl});
         _tokenData[tokenId] = newTokenData;
 
+        // mint the token
         _safeMint(to, tokenId);
 
+        // return the TokenData struct
         return newTokenData;
     }
 
@@ -82,6 +91,10 @@ contract Yohaku is ERC721, AccessControl {
         return previousOwners[tokenId];
     }
 
+    function getTokenData(uint256 tokenId) public view returns (TokenData memory) {
+        return _tokenData[tokenId];
+    }
+
     // The following functions are overrides required by Solidity.
 
     function _update(address to, uint256 tokenId, address auth) internal override(ERC721) returns (address) {
@@ -90,8 +103,12 @@ contract Yohaku is ERC721, AccessControl {
         return super._update(to, tokenId, auth);
     }
 
+    /// @notice Returns the token URI for the given token ID
+    /// @dev The token URI is generated using the token ID and the tokenData mapping.
+    /// @dev attributes and metadata is optimized for OpenSea
+    /// @param tokenId The token ID
+    /// @return The token URI
     function tokenURI(uint256 tokenId) public view override(ERC721) returns (string memory) {
-        // return super.tokenURI(tokenId);
         TokenData memory tokenData = _tokenData[tokenId];
 
         bytes memory attributes = abi.encodePacked(
