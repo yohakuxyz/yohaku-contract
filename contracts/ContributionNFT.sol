@@ -76,6 +76,7 @@ contract ContributionNFT is ERC721, AccessControl {
     function setImageURL(uint256 tokenId, string memory imageUrl) external onlyAdmin {
         _tokenData[tokenId].imageUrl = imageUrl;
     }
+
     /// @dev create a new attestation
     /// @param to current owner of the token bound account and recipient of the NFT
     /// @param account The Token Bound Account that receives the attestation
@@ -83,7 +84,6 @@ contract ContributionNFT is ERC721, AccessControl {
     /// @param score The score
     /// @param description The description of the NFT
     /// @return attestationUID The unique identifier of the attestation
-
     function _attest(address to, address account, uint256 tokenId, uint8 score, string memory description)
         internal
         returns (bytes32 attestationUID)
