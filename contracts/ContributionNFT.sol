@@ -198,7 +198,7 @@ contract ContributionNFT is ERC721, AccessControl {
             '{"trait_type": "name", "value": "',
             name(),
             '"}',
-            '{"trait_type": "name", "value": "',
+            '{"trait_type": "description", "value": "',
             tokenData.description,
             '"}',
             '{"trait_type": "points", "value": "',
@@ -210,6 +210,8 @@ contract ContributionNFT is ERC721, AccessControl {
         bytes memory metadata = abi.encodePacked(
             '{"name": "',
             name(),
+            " #",
+            tokenId.toString(),
             '", "description": "',
             tokenData.description,
             '", "image": "',

@@ -40,7 +40,7 @@ contract Yohaku is ERC721, AccessControl {
     }
 
     constructor(address initialOwner, string memory _description, string memory defaultImageUrl)
-        ERC721("YohakuNFT", "YHK")
+        ERC721("[]Yohaku", "YHK")
     {
         _defaultImageUrl = defaultImageUrl;
         description = _description;
@@ -116,14 +116,14 @@ contract Yohaku is ERC721, AccessControl {
             tokenId.toString(),
             '"},',
             '{"trait_type": "name", "value": "',
-            "YohakuNFT",
+            "[]Yohaku",
             '"}'
         );
 
         string memory imageUrl = bytes(tokenData.imageUrl).length > 0 ? tokenData.imageUrl : _defaultImageUrl;
 
         bytes memory metadata = abi.encodePacked(
-            '{"name": "Yohaku 2024 #',
+            '{"name": "[]Yohaku 2024 #',
             tokenId.toString(),
             '", "description": "',
             tokenData.description,
