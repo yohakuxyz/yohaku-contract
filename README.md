@@ -19,12 +19,3 @@ We believe that the future of the region should be decided by the people involve
 In particular, the "succession" mechanism allows the accumulation of contributions to be passed on to the next bearer with the approval of multiple users when the current holder is unable to continue regional activities due to circumstances, enabling community contributions across generations. Yohaku will first conduct a demonstration experiment in the Ueyama area through NFT distribution challenges and actual regional activities, and then expand the model to other areas.
 
 In the future, we will promote collaboration with other regions facing similar issues by making it open source. Yohaku is an ambitious project that challenges regional issues and sustainable community building with the power of decentralized technology. The new approach, which is based on the spontaneous activities of local people while supporting them with digital technology and fostering them as an "unstoppable infrastructure" across generations, may become a model case for regional revitalization in Japan.
-
-## development
-
-```shell
-cp .env.example .env
-
-pnpm install && pnpm dev
-
-```
