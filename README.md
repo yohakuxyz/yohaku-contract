@@ -1,4 +1,5 @@
 # [] yohaku
+
 Yohaku is a project to promote community contribution activities using cutting-edge decentralized technologies, born from the terraced rice paddy restoration efforts in the Ueyama area of Mimasaka City, Okayama Prefecture.
 
 The Ueyama area is a beautiful "satoyama" with about 8,300 terraced rice paddies, but due to depopulation and aging, the number of abandoned farmland is increasing, making it difficult to maintain the terraced rice paddies that boast a thousand years of history.
@@ -20,6 +21,7 @@ In particular, the "succession" mechanism allows the accumulation of contributio
 In the future, we will promote collaboration with other regions facing similar issues by making it open source. Yohaku is an ambitious project that challenges regional issues and sustainable community building with the power of decentralized technology. The new approach, which is based on the spontaneous activities of local people while supporting them with digital technology and fostering them as an "unstoppable infrastructure" across generations, may become a model case for regional revitalization in Japan.
 
 ## Structure
+
 - `/contracts`: smart contract implementations
   - `/EAS`: custom EAS resolver contract
   - `/TBA`: sample ERC6551 Token Bound Account(TBA) contracts
@@ -35,26 +37,32 @@ yohaku-contract is using foundry for tests and deployment of smart contracts
 ## Quick start
 
 ### clone repository
+
 ```shell
 git clone https://github.com/yohakuxyz/yohaku-contract
 cd yohaku-contract && cp .env.example .env
 ```
 
 ### install deps
+
 ```shell
 forge install
 ```
+
 if you haven't installed foundry yet, follow [the official installation](https://book.getfoundry.sh/getting-started/installation)
 
 ### build
+
 ```shell
 pnpm build
 ```
 
 ### fork testing
+
 make sure you setup environment variables and add script in [package.json file](https://github.com/yohakuxyz/yohaku-contract/blob/main/package.json)
 
 example below
+
 ```shell
 source .env && pnpm test:op
 ```
