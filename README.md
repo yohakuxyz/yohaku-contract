@@ -39,7 +39,7 @@ yohaku-contract is using foundry for tests and deployment of smart contracts
 ### clone repository
 
 ```shell
-git clone https://github.com/yohakuxyz/yohaku-contract
+git clone https://github.com/yohakuxyz/yohaku-contract.git
 cd yohaku-contract && cp .env.example .env
 ```
 
