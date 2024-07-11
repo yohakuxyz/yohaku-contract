@@ -11,15 +11,20 @@
     "deploy:factory-mumbai": "forge fmt && forge script script/NFTFactory.s.sol --rpc-url $POLYGON_MUMBAI_RPC_URL --broadcast -vvvv --private-key $DEPLOYER_PRIVATE_KEY --etherscan-api-key $API_KEY_POLYGONSCAN --verify",
     "deploy:yohaku-polygon": "forge fmt && forge script script/YohakuNFT.s.sol --rpc-url $POLYGON_POS_RPC_URL --broadcast -vvvv --private-key $DEPLOYER_PRIVATE_KEY --etherscan-api-key $API_KEY_POLYGONSCAN --verify",
     "deploy:factory-polygon": "forge fmt && forge script script/NFTFactory.s.sol --rpc-url $POLYGON_POS_RPC_URL --broadcast -vvvv --private-key $DEPLOYER_PRIVATE_KEY --etherscan-api-key $API_KEY_POLYGONSCAN --verify",
+    "deploy:yohaku-sepolia": "forge fmt && forge script script/YohakuNFT.s.sol --rpc-url $SEPOLIA_RPC_URL --broadcast -vvvv --private-key $DEPLOYER_PRIVATE_KEY --etherscan-api-key $API_KEY_ETHERSCAN --verify",
+    "deploy:factory-sepolia": "forge fmt && forge script script/NFTFactory.s.sol --rpc-url $SEPOLIA_RPC_URL --broadcast -vvvv --private-key $DEPLOYER_PRIVATE_KEY --etherscan-api-key $API_KEY_ETHERSCAN --verify",
+    "deploy:yohaku-op": "forge fmt && forge script script/YohakuNFT.s.sol --rpc-url $OPTIMISM_MAINNET_RPC_URL --broadcast -vvvv --private-key $DEPLOYER_PRIVATE_KEY --etherscan-api-key $API_KEY_OPTIMISTIC_ETHERSCAN --verify",
+    "deploy:factory-op": "forge fmt && forge script script/NFTFactory.s.sol --rpc-url $OPTIMISM_MAINNET_RPC_URL --broadcast -vvvv --private-key $DEPLOYER_PRIVATE_KEY --etherscan-api-key $API_KEY_OPTIMISTIC_ETHERSCAN --verify",
     "format": "forge fmt",
     "clean": "rm -rf cache out"
   },
   "devDependencies": {
-    "@nomicfoundation/hardhat-foundry": "^1.1.1",
-    "@nomicfoundation/hardhat-toolbox": "^4.0.0",
-    "hardhat": "^2.22.3"
+    "@nomicfoundation/hardhat-foundry": "^1.1.2",
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "hardhat": "^2.22.5"
   },
   "dependencies": {
+    "@nomicfoundation/hardhat-ignition": "^0.15.4",
     "dotenv": "^16.4.5"
   }
 }

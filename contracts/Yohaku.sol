@@ -91,7 +91,7 @@ contract Yohaku is Initializable, ERC721Upgradeable, AccessControlUpgradeable {
         return newTokenData;
     }
 
-    function setMinter(address _minter) public onlyAdmin {
+    function setMinter(address _minter) public onlyRole(DEFAULT_ADMIN_ROLE) {
         grantRole(MINTER_ROLE, _minter);
     }
 
@@ -128,14 +128,14 @@ contract Yohaku is Initializable, ERC721Upgradeable, AccessControlUpgradeable {
             tokenId.toString(),
             '"},',
             '{"trait_type": "name", "value": "',
-            "YohakuNFT",
+            "[]Yohaku",
             '"}'
         );
 
         string memory imageUrl = bytes(tokenData.imageUrl).length > 0 ? tokenData.imageUrl : _defaultImageUrl;
 
         bytes memory metadata = abi.encodePacked(
-            '{"name": "Yohaku 2024 #',
+            '{"name": "[]Yohaku 2024 #',
             tokenId.toString(),
             '", "description": "',
             tokenData.description,

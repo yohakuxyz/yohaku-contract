@@ -17,6 +17,11 @@ const config: HardhatUserConfig = {
     },
   },
   networks: {
+    sepolia: {
+      url: process.env.SEPOLIA_RPC_URL!,
+      accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
+      blockGasLimit: gasLimit,
+    },
     polygonMumbai: {
       url: process.env.POLYGON_MUMBAI_RPC_URL!,
       accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
@@ -27,11 +32,18 @@ const config: HardhatUserConfig = {
       accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
       // blockGasLimit: gasLimit,
     },
+    opSepolia: {
+      url: process.env.OPTIMISM_SEPOLIA_RPC_URL!,
+      accounts: [process.env.DEPLOYER_PRIVATE_KEY!],
+      blockGasLimit: gasLimit,
+    },
   },
   etherscan: {
     apiKey: {
+      sepolia: process.env.API_KEY_ETHERSCAN!,
       polygonMumbai: process.env.API_KEY_POLYGONSCAN!,
       polygon: process.env.API_KEY_POLYGONSCAN!,
+      opSepolia: process.env.API_KEY_OPTIMISTIC_ETHERSCAN!,
     },
   },
 };

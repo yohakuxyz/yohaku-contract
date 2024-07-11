@@ -8,11 +8,15 @@ import "../contracts/Yohaku.sol";
 import "../contracts//NFTFactory.sol";
 
 contract DeployYohakuNFT is Script {
-    address public minter = 0x06aa005386F53Ba7b980c61e0D067CaBc7602a62;
+    address public minter = 0xc3593524E2744E547f013E17E6b0776Bc27Fc614;
 
     function run() external {
         vm.startBroadcast();
-        Yohaku yohaku = new Yohaku(minter, "Yohaku", "QmYRmop52xSAmUC5J5squPrkyu6HtGwQc6yqQNze5q5S8v");
+        Yohaku yohaku = new Yohaku(
+            minter,
+            "[](yohaku) is a project aimed at improving communities and the connections among the people involved.",
+            "QmdhG2em4KmD4JzBh1goY18GsGNiSQucgSHpHqZxPS6Wns"
+        );
         console.log("Yohaku address: ", address(yohaku));
         vm.stopBroadcast();
     }

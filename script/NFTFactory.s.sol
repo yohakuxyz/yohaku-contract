@@ -7,7 +7,7 @@ import {IEAS} from "eas-contracts/IEAS.sol";
 import "../contracts/NFTFactory.sol";
 
 contract DeployNFTFactory is Script {
-    address public owner = 0x06aa005386F53Ba7b980c61e0D067CaBc7602a62;
+    address public owner = 0xc3593524E2744E547f013E17E6b0776Bc27Fc614;
     IEAS public eas;
     ISchemaRegistry public schemaRegistry;
 
@@ -21,6 +21,9 @@ contract DeployNFTFactory is Script {
         } else if (block.chainid == 10) {
             eas = IEAS(0x4200000000000000000000000000000000000021);
             schemaRegistry = ISchemaRegistry(0x4200000000000000000000000000000000000020);
+        } else if (block.chainid == 11155111) {
+            eas = IEAS(0xC2679fBD37d54388Ce493F1DB75320D236e1815e);
+            schemaRegistry = ISchemaRegistry(0x0a7E2Ff54e76B8E6659aedc9103FB21c038050D0);
         } else {
             revert("Unsupported chain");
         }
