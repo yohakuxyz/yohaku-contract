@@ -10,6 +10,11 @@ const config: HardhatUserConfig = {
   solidity: {
     version: "0.8.24",
     settings: {
+      outputSelection: {
+        "*": {
+          "*": ["storageLayout"],
+        },
+      },
       optimizer: {
         enabled: true,
         runs: 10,
