@@ -5,6 +5,8 @@ import {Test, console} from "forge-std/Test.sol";
 import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import {IERC6551Account} from "erc6551/interfaces/IERC6551Account.sol";
 import {IERC6551Executable} from "erc6551/interfaces/IERC6551Executable.sol";
+import {Upgrades} from "openzeppelin-foundry-upgrades/Upgrades.sol";
+import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol";
 
 import {IEAS, Attestation, AttestationRequest, AttestationRequestData} from "eas-contracts/IEAS.sol";
 import {ISchemaRegistry} from "eas-contracts/ISchemaRegistry.sol";
@@ -48,7 +50,14 @@ contract TokenBoundAccountTest is Test {
         schemaUID = factory.schemaUID();
         attesterResolver = factory.resolver();
         mockERC721 = factory.createERC721("Mock721", "MOCK", 5, "defaultImage", owner);
-        yohaku = new Yohaku(owner, "Yohaku NFT is built for community", "defaultImage");
+
+        address proxy = Upgrades.deployTransparentProxy(
+            "Yohaku.sol",
+            owner,
+            abi.encodeCall(Yohaku.initialize, (owner, "Yohaku NFT is built for community", "defaultImage"))
+        );
+        yohaku = Yohaku(proxy);
+
         implementation = new TokenBoundAccount();
         vm.stopPrank();
     }
@@ -214,8 +223,11 @@ contract TokenBoundAccountTest is Test {
 
         assertEq(yohaku.hasRole(yohaku.MINTER_ROLE(), owner), true);
         assertEq(yohaku.hasRole(yohaku.MINTER_ROLE(), alice), false);
-
-        vm.expectRevert("Caller is not a minter");
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IAccessControl.AccessControlUnauthorizedAccount.selector, alice, yohaku.MINTER_ROLE()
+            )
+        );
         yohaku.safeMint(alice, "");
         vm.stopPrank();
     }
