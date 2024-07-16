@@ -267,7 +267,7 @@ contract TokenBoundAccountTest is Test {
         _mintYohaku(alice, "");
         vm.startPrank(owner);
 
-        vm.expectRevert(abi.encodeWithSelector(CannnotHoldMoreThanOneYohakuNFT.selector, alice));
+        vm.expectRevert(abi.encodeWithSelector(Yohaku.CannnotHoldMoreThanOneYohakuNFT.selector, alice));
         _mintYohaku(alice, "");
 
         vm.stopPrank();

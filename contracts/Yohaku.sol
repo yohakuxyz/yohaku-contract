@@ -8,9 +8,9 @@ import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts/utils/Base64.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 
-error CannnotHoldMoreThanOneYohakuNFT(address owner);
-
 contract Yohaku is Initializable, ERC721Upgradeable, AccessControlUpgradeable {
+    error CannnotHoldMoreThanOneYohakuNFT(address owner);
+
     using Strings for uint256;
 
     uint256 private _nextTokenId;
