@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
 import {Test, console} from "forge-std/Test.sol";
@@ -18,7 +18,7 @@ import "../../contracts/Yohaku.sol";
 import "../../contracts/NFTFactory.sol";
 import {AttesterResolver} from "../../contracts/EAS/AttesterResolver.sol";
 
-contract TokenBoundAccountTest is Test {
+contract YohakuTest is Test {
     ContributionNFT public mockERC721;
     TokenBoundAccount public implementation;
     Registry public registry;
