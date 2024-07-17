@@ -15,6 +15,7 @@ import "../../contracts/ContributionNFT.sol";
 import "../../contracts/TBA/Registry.sol";
 import "../../contracts/TBA/TokenBoundAccount.sol";
 import "../../contracts/Yohaku.sol";
+import "../../contracts/YohakuV2.sol";
 import "../../contracts/NFTFactory.sol";
 import {AttesterResolver} from "../../contracts/EAS/AttesterResolver.sol";
 
@@ -57,6 +58,7 @@ contract YohakuTest is Test {
             abi.encodeCall(Yohaku.initialize, (owner, "Yohaku NFT is built for community", "defaultImage"))
         );
         yohaku = Yohaku(proxy);
+        Upgrades.upgradeProxy(proxy, "YohakuV2.sol", "");
 
         implementation = new TokenBoundAccount();
         vm.stopPrank();

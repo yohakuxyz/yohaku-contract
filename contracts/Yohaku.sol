@@ -1,5 +1,4 @@
 // SPDX-License-Identifier: MIT
-// Compatible with OpenZeppelin Contracts ^5.0.0
 pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
@@ -34,14 +33,6 @@ contract Yohaku is Initializable, ERC721Upgradeable, AccessControlUpgradeable {
     constructor() {
         _disableInitializers();
     }
-    // constructor(address initialOwner, string memory _description, string memory defaultImageUrl)
-    //     ERC721("YohakuNFT", "YHK")
-    // {
-    //     _defaultImageUrl = defaultImageUrl;
-    //     description = _description;
-    //     _grantRole(DEFAULT_ADMIN_ROLE, initialOwner);
-    //     _grantRole(MINTER_ROLE, initialOwner);
-    // }
 
     function initialize(address initialOwner, string memory _description, string memory defaultImageUrl)
         public
