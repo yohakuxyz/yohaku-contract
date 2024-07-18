@@ -58,11 +58,34 @@ contract YohakuTest is Test {
             abi.encodeCall(Yohaku.initialize, (owner, "Yohaku NFT is built for community", "defaultImage"))
         );
         yohaku = Yohaku(proxy);
-        Upgrades.upgradeProxy(proxy, "YohakuV2.sol", "");
 
         implementation = new TokenBoundAccount();
         vm.stopPrank();
     }
+    /* -------------- Upgrade Test ----------------- */
+
+    function testUpgrade() external {
+        address account = _createTBA(alice);
+
+        vm.startPrank(owner);
+        mockERC721.safeMint(alice, account, "mint and attest");
+        vm.stopPrank();
+
+        // upgrade contract
+        _upgradeContract(address(yohaku));
+        ContributionNFT newERC721 = factory.createERC721("NEWERC721", "NEW", 10, "defaultImage", owner);
+
+        vm.startPrank(owner);
+        newERC721.safeMint(alice, account, "mint and attest for upgraded");
+        vm.stopPrank();
+
+        assertEq(mockERC721.ownerOf(0), alice);
+        assertEq(newERC721.ownerOf(0), alice);
+        assertEq(mockERC721.balanceOf(alice), 1);
+        assertEq(newERC721.balanceOf(alice), 1);
+        assertEq(yohaku.ownerOf(0), alice);
+    }
+
     /* -------------- EAS Test ----------------- */
 
     function testAttestManual() external {
@@ -360,6 +383,10 @@ contract YohakuTest is Test {
 
     function _transferYohaku(address from, address to, uint256 tokenId) internal prankception(from) {
         yohaku.safeTransferFrom(from, to, tokenId);
+    }
+
+    function _upgradeContract(address proxy) internal prankception(owner) {
+        Upgrades.upgradeProxy(proxy, "YohakuV2.sol", "");
     }
 
     function configureChain() public {
