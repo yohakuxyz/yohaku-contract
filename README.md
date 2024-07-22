@@ -1,4 +1,4 @@
-# [] yohaku [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+# [] yohaku [![CI](https://github.com/yohakuxyz/yohaku-contract/actions/workflows/ci.yaml/badge.svg?branch=main)](https://github.com/yohakuxyz/yohaku-contract/actions/workflows/ci.yaml) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 Yohaku is a project to promote community contribution activities using cutting-edge decentralized technologies, born from the terraced rice paddy restoration efforts in the Ueyama area of Mimasaka City, Okayama Prefecture.
 
