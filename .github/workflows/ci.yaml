@@ -20,20 +20,11 @@ jobs:
       - name: "Install Foundry"
         uses: "foundry-rs/foundry-toolchain@v1"
 
-			-name: Install pnpm
-				uses: pnpm/action-setup@v4
-        with:
-					version: 9.5.0
-          run_install: true
-
-      - name: "Install pnpm dependencies"
-        run: "pnpm install"
-
       - name: "Install foundry libs"
         run: "forge install"
 
       - name: "Build the contracts"
-        run: "pnpm build"
+        run: "forge build"
 
       - name: "Add build summary"
         run: |
@@ -50,10 +41,10 @@ jobs:
       - name: "Install Foundry"
         uses: "foundry-rs/foundry-toolchain@v1"
 
-			-name: Install pnpm
-				uses: pnpm/action-setup@v4
+      - name: "Install pnpm"
+        uses: "pnpm/action-setup@v4"
         with:
-					version: 9.5.0
+          version: 9.5.0
           run_install: true
 
       - name: "Install pnpm dependencies"
