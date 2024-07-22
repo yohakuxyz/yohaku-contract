@@ -60,7 +60,7 @@ jobs:
         run: "forge config"
 
       - name: "Run the fork tests for Optimism"
-        run: "pnpm test:op"
+        run: "source .env && pnpm test:op"
 
       - name: "Add test summary"
         run: |
