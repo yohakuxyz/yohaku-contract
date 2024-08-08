@@ -1,9 +1,14 @@
 [profile.default]
+solc = "0.8.24"
 src = 'contracts'
 out = 'out'
+fs_permissions = [{ access = "read", path = "out" }]
 libs = ['node_modules', 'lib']
 test = 'test/foundry'
 cache_path  = 'cache/foundry'
-
+ffi = true
+ast = true
+build_info = true
+extra_output = ["storageLayout"]
 optimizer = true
 optimizer_runs = 1

@@ -1,15 +1,15 @@
 // SPDX-License-Identifier: MIT
-// Compatible with OpenZeppelin Contracts ^5.0.0
 pragma solidity ^0.8.20;
 
-import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-import "@openzeppelin/contracts/access/AccessControl.sol";
+import "@openzeppelin/contracts-upgradeable/token/ERC721/ERC721Upgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import "@openzeppelin/contracts/utils/Base64.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 
-error CannnotHoldMoreThanOneYohakuNFT(address owner);
+contract Yohaku is Initializable, ERC721Upgradeable, AccessControlUpgradeable {
+    error CannnotHoldMoreThanOneYohakuNFT(address owner);
 
-contract Yohaku is ERC721, AccessControl {
     using Strings for uint256;
 
     uint256 private _nextTokenId;
@@ -29,30 +29,29 @@ contract Yohaku is ERC721, AccessControl {
 
     mapping(uint256 => address[]) public previousOwners;
 
-    modifier onlyMinter() {
-        require(hasRole(MINTER_ROLE, msg.sender), "Caller is not a minter");
-        _;
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    constructor() {
+        _disableInitializers();
     }
 
-    modifier onlyAdmin() {
-        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Caller is not a admin");
-        _;
-    }
-
-    constructor(address initialOwner, string memory _description, string memory defaultImageUrl)
-        ERC721("[]Yohaku", "YHK")
+    function initialize(address initialOwner, string memory _description, string memory defaultImageUrl)
+        public
+        initializer
     {
+        __ERC721_init("YohakuNFT", "YHK");
+        __AccessControl_init();
+
         _defaultImageUrl = defaultImageUrl;
         description = _description;
         _grantRole(DEFAULT_ADMIN_ROLE, initialOwner);
         _grantRole(MINTER_ROLE, initialOwner);
     }
 
-    function setDefaultImageUrl(string memory defaultImageUrl) external onlyAdmin {
+    function setDefaultImageUrl(string memory defaultImageUrl) external onlyRole(DEFAULT_ADMIN_ROLE) {
         _defaultImageUrl = defaultImageUrl;
     }
 
-    function setImageURL(uint256 tokenId, string memory imageUrl) external onlyAdmin {
+    function setImageURL(uint256 tokenId, string memory imageUrl) external onlyRole(DEFAULT_ADMIN_ROLE) {
         _tokenData[tokenId].imageUrl = imageUrl;
     }
 
@@ -63,7 +62,7 @@ contract Yohaku is ERC721, AccessControl {
     /// @param to The address to mint the NFT to
     /// @param imageUrl The URL of the image to be displayed
     /// @return The TokenData struct of the minted token
-    function safeMint(address to, string memory imageUrl) external onlyMinter returns (TokenData memory) {
+    function safeMint(address to, string memory imageUrl) external onlyRole(MINTER_ROLE) returns (TokenData memory) {
         // revert if the address already holds a token
         if (balanceOf(to) > 0) {
             revert CannnotHoldMoreThanOneYohakuNFT(to);
@@ -83,7 +82,7 @@ contract Yohaku is ERC721, AccessControl {
         return newTokenData;
     }
 
-    function setMinter(address _minter) public onlyAdmin {
+    function setMinter(address _minter) public onlyRole(DEFAULT_ADMIN_ROLE) {
         grantRole(MINTER_ROLE, _minter);
     }
 
@@ -97,7 +96,11 @@ contract Yohaku is ERC721, AccessControl {
 
     // The following functions are overrides required by Solidity.
 
-    function _update(address to, uint256 tokenId, address auth) internal override(ERC721) returns (address) {
+    function _update(address to, uint256 tokenId, address auth)
+        internal
+        override(ERC721Upgradeable)
+        returns (address)
+    {
         previousOwners[tokenId].push(to);
         _tokenData[tokenId].owner = to;
         return super._update(to, tokenId, auth);
@@ -108,7 +111,7 @@ contract Yohaku is ERC721, AccessControl {
     /// @dev attributes and metadata is optimized for OpenSea
     /// @param tokenId The token ID
     /// @return The token URI
-    function tokenURI(uint256 tokenId) public view override(ERC721) returns (string memory) {
+    function tokenURI(uint256 tokenId) public view override(ERC721Upgradeable) returns (string memory) {
         TokenData memory tokenData = _tokenData[tokenId];
 
         bytes memory attributes = abi.encodePacked(
@@ -136,7 +139,12 @@ contract Yohaku is ERC721, AccessControl {
         return string(abi.encodePacked("data:application/json;base64,", Base64.encode(metadata)));
     }
 
-    function supportsInterface(bytes4 interfaceId) public view override(ERC721, AccessControl) returns (bool) {
+    function supportsInterface(bytes4 interfaceId)
+        public
+        view
+        override(ERC721Upgradeable, AccessControlUpgradeable)
+        returns (bool)
+    {
         return super.supportsInterface(interfaceId);
     }
 }

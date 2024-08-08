@@ -4,6 +4,8 @@ pragma solidity ^0.8.20;
 import {Script, console2} from "forge-std/Script.sol";
 import {ISchemaRegistry} from "eas-contracts/ISchemaRegistry.sol";
 import {IEAS} from "eas-contracts/IEAS.sol";
+import {Upgrades} from "openzeppelin-foundry-upgrades/Upgrades.sol";
+
 import "../contracts/Yohaku.sol";
 import "../contracts/TBA/Registry.sol";
 import "../contracts/TBA/TokenBoundAccount.sol";
@@ -22,7 +24,12 @@ contract TokenBoundAccountSctipt is Script {
         vm.startBroadcast();
         factory = new NFTFactory(owner, eas, schemaRegistry);
         Registry registry = new Registry();
-        Yohaku yohaku = new Yohaku(owner, "Yohaku", "QmYRmop52xSAmUC5J5squPrkyu6HtGwQc6yqQNze5q5S8v");
+        address proxy = Upgrades.deployTransparentProxy(
+            "Yohaku.sol",
+            owner,
+            abi.encodeCall(Yohaku.initialize, (owner, "Yohaku", "QmYRmop52xSAmUC5J5squPrkyu6HtGwQc6yqQNze5q5S8v"))
+        );
+        Yohaku yohaku = Yohaku(proxy);
         TokenBoundAccount implementation = new TokenBoundAccount();
         vm.stopBroadcast();
 

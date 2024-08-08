@@ -1,10 +1,12 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
 import {Test, console} from "forge-std/Test.sol";
 import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import {IERC6551Account} from "erc6551/interfaces/IERC6551Account.sol";
 import {IERC6551Executable} from "erc6551/interfaces/IERC6551Executable.sol";
+import {Upgrades} from "openzeppelin-foundry-upgrades/Upgrades.sol";
+import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol";
 
 import {IEAS, Attestation, AttestationRequest, AttestationRequestData} from "eas-contracts/IEAS.sol";
 import {ISchemaRegistry} from "eas-contracts/ISchemaRegistry.sol";
@@ -13,10 +15,11 @@ import "../../contracts/ContributionNFT.sol";
 import "../../contracts/TBA/Registry.sol";
 import "../../contracts/TBA/TokenBoundAccount.sol";
 import "../../contracts/Yohaku.sol";
+import "../../contracts/YohakuV2.sol";
 import "../../contracts/NFTFactory.sol";
 import {AttesterResolver} from "../../contracts/EAS/AttesterResolver.sol";
 
-contract TokenBoundAccountTest is Test {
+contract YohakuTest is Test {
     ContributionNFT public mockERC721;
     TokenBoundAccount public implementation;
     Registry public registry;
@@ -48,10 +51,41 @@ contract TokenBoundAccountTest is Test {
         schemaUID = factory.schemaUID();
         attesterResolver = factory.resolver();
         mockERC721 = factory.createERC721("Mock721", "MOCK", 5, "defaultImage", owner);
-        yohaku = new Yohaku(owner, "Yohaku NFT is built for community", "defaultImage");
+
+        address proxy = Upgrades.deployTransparentProxy(
+            "Yohaku.sol",
+            owner,
+            abi.encodeCall(Yohaku.initialize, (owner, "Yohaku NFT is built for community", "defaultImage"))
+        );
+        yohaku = Yohaku(proxy);
+
         implementation = new TokenBoundAccount();
         vm.stopPrank();
     }
+    /* -------------- Upgrade Test ----------------- */
+
+    function testUpgrade() external {
+        address account = _createTBA(alice);
+
+        vm.startPrank(owner);
+        mockERC721.safeMint(alice, account, "mint and attest");
+        vm.stopPrank();
+
+        // upgrade contract
+        _upgradeContract(address(yohaku));
+        ContributionNFT newERC721 = factory.createERC721("NEWERC721", "NEW", 10, "defaultImage", owner);
+
+        vm.startPrank(owner);
+        newERC721.safeMint(alice, account, "mint and attest for upgraded");
+        vm.stopPrank();
+
+        assertEq(mockERC721.ownerOf(0), alice);
+        assertEq(newERC721.ownerOf(0), alice);
+        assertEq(mockERC721.balanceOf(alice), 1);
+        assertEq(newERC721.balanceOf(alice), 1);
+        assertEq(yohaku.ownerOf(0), alice);
+    }
+
     /* -------------- EAS Test ----------------- */
 
     function testAttestManual() external {
@@ -214,8 +248,11 @@ contract TokenBoundAccountTest is Test {
 
         assertEq(yohaku.hasRole(yohaku.MINTER_ROLE(), owner), true);
         assertEq(yohaku.hasRole(yohaku.MINTER_ROLE(), alice), false);
-
-        vm.expectRevert("Caller is not a minter");
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IAccessControl.AccessControlUnauthorizedAccount.selector, alice, yohaku.MINTER_ROLE()
+            )
+        );
         yohaku.safeMint(alice, "");
         vm.stopPrank();
     }
@@ -255,7 +292,7 @@ contract TokenBoundAccountTest is Test {
         _mintYohaku(alice, "");
         vm.startPrank(owner);
 
-        vm.expectRevert(abi.encodeWithSelector(CannnotHoldMoreThanOneYohakuNFT.selector, alice));
+        vm.expectRevert(abi.encodeWithSelector(Yohaku.CannnotHoldMoreThanOneYohakuNFT.selector, alice));
         _mintYohaku(alice, "");
 
         vm.stopPrank();
@@ -346,6 +383,10 @@ contract TokenBoundAccountTest is Test {
 
     function _transferYohaku(address from, address to, uint256 tokenId) internal prankception(from) {
         yohaku.safeTransferFrom(from, to, tokenId);
+    }
+
+    function _upgradeContract(address proxy) internal prankception(owner) {
+        Upgrades.upgradeProxy(proxy, "YohakuV2.sol", "");
     }
 
     function configureChain() public {
