@@ -1,7 +1,7 @@
-// SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.20;
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.28;
 
-import { IERC6551Registry } from "erc6551/interfaces/IERC6551Registry.sol";
+import {IERC6551Registry} from "erc6551/interfaces/IERC6551Registry.sol";
 
 contract Registry is IERC6551Registry {
     // ref:
@@ -12,10 +12,7 @@ contract Registry is IERC6551Registry {
         uint256 chainId,
         address tokenContract,
         uint256 tokenId
-    )
-        external
-        returns (address)
-    {
+    ) external returns (address) {
         assembly {
             // Memory Layout:
             // ----
@@ -91,11 +88,7 @@ contract Registry is IERC6551Registry {
         uint256 chainId,
         address tokenContract,
         uint256 tokenId
-    )
-        external
-        view
-        returns (address)
-    {
+    ) external view returns (address) {
         assembly {
             // Silence unused variable warnings
             pop(chainId)
