@@ -11,7 +11,7 @@ import { Initializable } from "@openzeppelin/contracts-upgradeable/proxy/utils/I
 import "@openzeppelin/contracts/utils/Base64.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 
-contract Yohaku is Initializable, ERC721Upgradeable, AccessControlUpgradeable {
+contract Yohaku is Initializable, ERC721Upgradeable, ERC721PausableUpgradeable, AccessControlUpgradeable {
     using Strings for uint256;
 
     string private _defaultImageUrl;
@@ -46,12 +46,14 @@ contract Yohaku is Initializable, ERC721Upgradeable, AccessControlUpgradeable {
         initializer
     {
         __ERC721_init("YohakuNFT", "YHK");
+        __ERC721Pausable_init();
         __AccessControl_init();
 
         _defaultImageUrl = defaultImageUrl;
         description = _description;
         _grantRole(DEFAULT_ADMIN_ROLE, initialOwner);
         _grantRole(MINTER_ROLE, initialOwner);
+        _grantRole(PAUSER_ROLE, initialOwner);
     }
 
     function setDefaultImageUrl(string memory defaultImageUrl) external onlyRole(DEFAULT_ADMIN_ROLE) {
@@ -117,7 +119,7 @@ contract Yohaku is Initializable, ERC721Upgradeable, AccessControlUpgradeable {
         address auth
     )
         internal
-        override(ERC721Upgradeable)
+        override(ERC721Upgradeable, ERC721PausableUpgradeable)
         returns (address)
     {
         previousOwners[tokenId].push(to);
