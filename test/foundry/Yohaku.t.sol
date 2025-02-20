@@ -224,7 +224,7 @@ contract YohakuTest is Test {
         });
         AttestationRequest memory request = AttestationRequest({ schema: schemaUID, data: attestationRequestData });
 
-        vm.expectRevert(abi.encodeWithSelector(AttesterResolver.CallerNotAttester.selector, alice));
+        vm.expectRevert(abi.encodeWithSelector(AttesterResolver.INVALID_ATTESTER.selector, alice));
         eas.attest(request);
 
         vm.stopPrank();
@@ -270,7 +270,7 @@ contract YohakuTest is Test {
         vm.stopPrank();
     }
 
-    function testRevertCannotHoldMoreThanOneToken() external {
+    function testRevertALREADY_HAVE_TOKEN() external {
         address aliceAccount = _createTBA(alice);
 
         address[] memory recipients = new address[](2);
@@ -283,7 +283,7 @@ contract YohakuTest is Test {
 
         vm.startPrank(owner);
 
-        vm.expectRevert(abi.encodeWithSelector(ContributionNFT.CannotHoldMoreThanOneToken.selector, alice));
+        vm.expectRevert(abi.encodeWithSelector(ContributionNFT.ALREADY_HAVE_TOKEN.selector, alice));
         mockERC721.batchMint(recipients, accounts, "batchmint");
 
         vm.stopPrank();

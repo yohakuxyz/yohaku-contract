@@ -8,22 +8,26 @@ import { AccessControl } from "@openzeppelin/contracts/access/AccessControl.sol"
 /// @title AttesterResolver
 /// @notice A sample schema resolver that checks whether the attestation is from a specific attester.
 contract AttesterResolver is SchemaResolver, AccessControl {
-    address private immutable owner;
+    address public factory;
 
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
 
-    error CallerNotAttester(address caller);
+    error INVALID_ATTESTER(address caller);
+    error INVALID_FACTORY(address caller);
 
-    event AttesterAdded(address indexed NewAttester);
+    event AttesterAdded(address indexed newAttester);
 
-    constructor(IEAS eas, address initialAttester) SchemaResolver(eas) {
-        owner = initialAttester;
+    constructor(IEAS eas, address _factory, address initialAttester) SchemaResolver(eas) {
+        factory = _factory;
+
+        _grantRole(DEFAULT_ADMIN_ROLE, _factory);
+        _grantRole(MINTER_ROLE, _factory);
         _grantRole(MINTER_ROLE, initialAttester);
     }
 
     modifier onlyAttesters(address attester) {
         if (!hasRole(MINTER_ROLE, attester)) {
-            revert CallerNotAttester(attester);
+            revert INVALID_ATTESTER(attester);
         }
         _;
     }
@@ -35,7 +39,7 @@ contract AttesterResolver is SchemaResolver, AccessControl {
 
     function onAttest(Attestation calldata attestation, uint256 /*value*/ ) internal view override returns (bool) {
         if (!hasRole(MINTER_ROLE, attestation.attester)) {
-            revert CallerNotAttester(attestation.attester);
+            revert INVALID_ATTESTER(attestation.attester);
         } else {
             return hasRole(MINTER_ROLE, attestation.attester);
         }
