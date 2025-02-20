@@ -11,9 +11,9 @@ import { IAccessControl } from "@openzeppelin/contracts/access/IAccessControl.so
 import { IEAS, Attestation, AttestationRequest, AttestationRequestData } from "eas-contracts/IEAS.sol";
 import { ISchemaRegistry } from "eas-contracts/ISchemaRegistry.sol";
 
+import { Registry } from "../mock/TBA/Registry.sol";
+import { TokenBoundAccount } from "../mock/TBA/TokenBoundAccount.sol";
 import { ContributionNFT } from "../../contracts/ContributionNFT.sol";
-import { Registry } from "../../contracts/TBA/Registry.sol";
-import { TokenBoundAccount } from "../../contracts/TBA/TokenBoundAccount.sol";
 import { Yohaku } from "../../contracts/Yohaku.sol";
 import { NFTFactory } from "../../contracts/NFTFactory.sol";
 import { AttesterResolver } from "../../contracts/EAS/AttesterResolver.sol";
