@@ -9,6 +9,9 @@ import { Initializable } from "@openzeppelin/contracts-upgradeable/proxy/utils/I
 import "@openzeppelin/contracts/utils/Base64.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 
+/// @title Core ERC721 Upgradeable smart contract for Yohaku NFT
+/// @author shutanaka.eth
+/// @dev Transparent upgradeable ERC721 contract with pausable and access control from OpenZeppelin
 contract Yohaku is Initializable, ERC721Upgradeable, ERC721PausableUpgradeable, AccessControlUpgradeable {
     using Strings for uint256;
 
@@ -19,8 +22,10 @@ contract Yohaku is Initializable, ERC721Upgradeable, ERC721PausableUpgradeable, 
 
     uint256 private _nextTokenId;
 
+    /// @notice mapping of token ID to TokenData struct
     mapping(uint256 => TokenData) public _tokenData;
 
+    /// @notice mapping of token ID to previous owners
     mapping(uint256 => address[]) public previousOwners;
 
     error ALREADY_HAVE_TOKEN(address owner);
@@ -48,17 +53,25 @@ contract Yohaku is Initializable, ERC721Upgradeable, ERC721PausableUpgradeable, 
         __ERC721Pausable_init();
         __AccessControl_init();
 
-        defaultImageUrl = _defaultImageUrl;
-        description = _description;
         _grantRole(DEFAULT_ADMIN_ROLE, initialOwner);
         _grantRole(MINTER_ROLE, initialOwner);
         _grantRole(PAUSER_ROLE, initialOwner);
+
+        defaultImageUrl = _defaultImageUrl;
+        description = _description;
     }
 
+    /// @notice Set the default image URL to be used when tokenURI() is called
+    /// @dev The caller must have the DEFAULT_ADMIN_ROLE
+    /// @param _defaultImageUrl The default image URL to be used when tokenURI() is called
     function setDefaultImageUrl(string memory _defaultImageUrl) external onlyRole(DEFAULT_ADMIN_ROLE) {
         defaultImageUrl = _defaultImageUrl;
     }
 
+    /// @notice Set an Image URL for the given token ID
+    /// @dev The caller must have the DEFAULT_ADMIN_ROLE
+    /// @param tokenId The token ID
+    /// @param imageUrl The URL of the image to be displayed
     function setImageURL(uint256 tokenId, string memory imageUrl) external onlyRole(DEFAULT_ADMIN_ROLE) {
         _tokenData[tokenId].imageUrl = imageUrl;
     }
@@ -67,24 +80,31 @@ contract Yohaku is Initializable, ERC721Upgradeable, ERC721PausableUpgradeable, 
     /// @dev The caller must have the MINTER_ROLE. If 'imageUrl' is empty,
     /// the default image URL will be used when tokenURI() is called, and store empty string in the tokenData mapping.
     /// @dev Each address can hold only one Token, if the address already holds a token, it will be reverted.
-    /// @param to The address to mint the NFT to
+    /// @param recipient The address to mint the NFT to
     /// @param imageUrl The URL of the image to be displayed
     /// @return The TokenData struct of the minted token
-    function safeMint(address to, string memory imageUrl) external onlyRole(MINTER_ROLE) returns (TokenData memory) {
+    function safeMint(
+        address recipient,
+        string memory imageUrl
+    )
+        external
+        onlyRole(MINTER_ROLE)
+        returns (TokenData memory)
+    {
         // revert if the address already holds a token
-        if (balanceOf(to) > 0) {
-            revert ALREADY_HAVE_TOKEN(to);
+        if (balanceOf(recipient) > 0) {
+            revert ALREADY_HAVE_TOKEN(recipient);
         }
 
         // increment the next token ID
         uint256 tokenId = _nextTokenId++;
 
         // create a new TokenData struct and store it in the mapping
-        TokenData memory newTokenData = TokenData({ owner: to, description: description, imageUrl: imageUrl });
+        TokenData memory newTokenData = TokenData({ owner: recipient, description: description, imageUrl: imageUrl });
         _tokenData[tokenId] = newTokenData;
 
         // mint the token
-        _safeMint(to, tokenId);
+        _safeMint(recipient, tokenId);
 
         // return the TokenData struct
         return newTokenData;
@@ -112,6 +132,9 @@ contract Yohaku is Initializable, ERC721Upgradeable, ERC721PausableUpgradeable, 
 
     // The following functions are overrides required by Solidity.
 
+    /// @notice Updates the owner of the given token ID
+    /// @dev This function is called by transfer() and safeTransferFrom() to update the owner of the token.
+    /// @dev It also stores the previous owner in the previousOwners mapping.
     function _update(
         address to,
         uint256 tokenId,
@@ -146,7 +169,7 @@ contract Yohaku is Initializable, ERC721Upgradeable, ERC721PausableUpgradeable, 
         string memory imageUrl = bytes(tokenData.imageUrl).length > 0 ? tokenData.imageUrl : defaultImageUrl;
 
         bytes memory metadata = abi.encodePacked(
-            '{"name": "[]Yohaku 2024 #',
+            '{"name": "[]Yohaku #',
             tokenId.toString(),
             '", "description": "',
             tokenData.description,
