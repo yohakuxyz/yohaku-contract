@@ -8,26 +8,24 @@ import "@openzeppelin/contracts/utils/Base64.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 
 contract Yohaku is Initializable, ERC721Upgradeable, AccessControlUpgradeable {
-    error CannnotHoldMoreThanOneYohakuNFT(address owner);
-
     using Strings for uint256;
 
-    uint256 private _nextTokenId;
     string private _defaultImageUrl;
-
     string public description;
+    bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
+
+    uint256 private _nextTokenId;
+    mapping(uint256 => TokenData) public _tokenData;
+
+    mapping(uint256 => address[]) public previousOwners;
+
+    error ALREADY_HAVE_TOKEN(address owner);
 
     struct TokenData {
         address owner;
         string description;
         string imageUrl;
     }
-
-    bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
-
-    mapping(uint256 => TokenData) public _tokenData;
-
-    mapping(uint256 => address[]) public previousOwners;
 
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
@@ -69,7 +67,7 @@ contract Yohaku is Initializable, ERC721Upgradeable, AccessControlUpgradeable {
     function safeMint(address to, string memory imageUrl) external onlyRole(MINTER_ROLE) returns (TokenData memory) {
         // revert if the address already holds a token
         if (balanceOf(to) > 0) {
-            revert CannnotHoldMoreThanOneYohakuNFT(to);
+            revert ALREADY_HAVE_TOKEN(to);
         }
 
         // increment the next token ID

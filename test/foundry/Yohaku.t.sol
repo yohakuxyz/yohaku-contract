@@ -293,7 +293,7 @@ contract YohakuTest is Test {
         _mintYohaku(alice, "");
         vm.startPrank(owner);
 
-        vm.expectRevert(abi.encodeWithSelector(Yohaku.CannnotHoldMoreThanOneYohakuNFT.selector, alice));
+        vm.expectRevert(abi.encodeWithSelector(Yohaku.ALREADY_HAVE_TOKEN.selector, alice));
         _mintYohaku(alice, "");
 
         vm.stopPrank();
