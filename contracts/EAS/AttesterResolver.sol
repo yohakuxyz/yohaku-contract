@@ -2,9 +2,9 @@
 
 pragma solidity ^0.8.20;
 
-import {SchemaResolver} from "eas-contracts/resolver/SchemaResolver.sol";
-import {IEAS, Attestation} from "eas-contracts/IEAS.sol";
-import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
+import { SchemaResolver } from "eas-contracts/resolver/SchemaResolver.sol";
+import { IEAS, Attestation } from "eas-contracts/IEAS.sol";
+import { AccessControl } from "@openzeppelin/contracts/access/AccessControl.sol";
 
 /// @title AttesterResolver
 /// @notice A sample schema resolver that checks whether the attestation is from a specific attester.
@@ -14,6 +14,7 @@ contract AttesterResolver is SchemaResolver, AccessControl {
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
 
     error CallerNotAttester(address caller);
+
     event AttesterAdded(address indexed NewAttester);
 
     constructor(IEAS eas, address initialAttester) SchemaResolver(eas) {
@@ -28,17 +29,12 @@ contract AttesterResolver is SchemaResolver, AccessControl {
         _;
     }
 
-    function addAttester(
-        address newAttester
-    ) external onlyAttesters(msg.sender) {
+    function addAttester(address newAttester) external onlyAttesters(msg.sender) {
         _grantRole(MINTER_ROLE, newAttester);
         emit AttesterAdded(newAttester);
     }
 
-    function onAttest(
-        Attestation calldata attestation,
-        uint256 /*value*/
-    ) internal view override returns (bool) {
+    function onAttest(Attestation calldata attestation, uint256 /*value*/ ) internal view override returns (bool) {
         if (!hasRole(MINTER_ROLE, attestation.attester)) {
             revert CallerNotAttester(attestation.attester);
         } else {
@@ -48,8 +44,14 @@ contract AttesterResolver is SchemaResolver, AccessControl {
 
     function onRevoke(
         Attestation calldata,
-        /*attestation*/ uint256 /*value*/
-    ) internal pure override returns (bool) {
+        /*attestation*/
+        uint256 /*value*/
+    )
+        internal
+        pure
+        override
+        returns (bool)
+    {
         return true;
     }
 }

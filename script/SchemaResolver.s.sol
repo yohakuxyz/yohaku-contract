@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.20;
 
-import {Script, console2} from "forge-std/Script.sol";
-import {IEAS, Attestation} from "eas-contracts/IEAS.sol";
-import {ISchemaRegistry} from "eas-contracts/ISchemaRegistry.sol";
+import { Script, console2 } from "forge-std/Script.sol";
+import { IEAS, Attestation } from "eas-contracts/IEAS.sol";
+import { ISchemaRegistry } from "eas-contracts/ISchemaRegistry.sol";
 
 import "../contracts/EAS/AttesterResolver.sol";
 

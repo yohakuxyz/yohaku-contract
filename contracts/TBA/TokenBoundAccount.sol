@@ -10,8 +10,8 @@ import "@openzeppelin/contracts/interfaces/IERC1271.sol";
 import "@openzeppelin/contracts/utils/cryptography/SignatureChecker.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
-import {IERC6551Account} from "erc6551/interfaces/IERC6551Account.sol";
-import {IERC6551Executable} from "erc6551/interfaces/IERC6551Executable.sol";
+import { IERC6551Account } from "erc6551/interfaces/IERC6551Account.sol";
+import { IERC6551Executable } from "erc6551/interfaces/IERC6551Executable.sol";
 
 error InvalidChainId();
 
@@ -25,9 +25,14 @@ contract TokenBoundAccount is Ownable, IERC6551Account, IERC6551Executable, IERC
     /// inherit IERC6551Account
     uint256 public state;
 
-    receive() external payable {}
+    receive() external payable { }
 
-    function execute(address to, uint256 value, bytes calldata data, uint8 operation)
+    function execute(
+        address to,
+        uint256 value,
+        bytes calldata data,
+        uint8 operation
+    )
         external
         payable
         virtual
@@ -39,7 +44,7 @@ contract TokenBoundAccount is Ownable, IERC6551Account, IERC6551Executable, IERC
         ++state;
 
         bool success;
-        (success, result) = to.call{value: value}(data);
+        (success, result) = to.call{ value: value }(data);
 
         if (!success) {
             assembly {
@@ -100,7 +105,13 @@ contract TokenBoundAccount is Ownable, IERC6551Account, IERC6551Executable, IERC
     }
 
     /// @inheritdoc IERC1155Receiver
-    function onERC1155BatchReceived(address, address, uint256[] memory, uint256[] memory, bytes memory)
+    function onERC1155BatchReceived(
+        address,
+        address,
+        uint256[] memory,
+        uint256[] memory,
+        bytes memory
+    )
         public
         virtual
         returns (bytes4)

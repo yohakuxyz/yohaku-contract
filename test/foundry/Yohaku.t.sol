@@ -1,23 +1,23 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-import {Test, console} from "forge-std/Test.sol";
-import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
-import {IERC6551Account} from "erc6551/interfaces/IERC6551Account.sol";
-import {IERC6551Executable} from "erc6551/interfaces/IERC6551Executable.sol";
-import {Upgrades} from "openzeppelin-foundry-upgrades/Upgrades.sol";
-import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol";
+import { Test, console } from "forge-std/Test.sol";
+import { IERC721 } from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+import { IERC6551Account } from "erc6551/interfaces/IERC6551Account.sol";
+import { IERC6551Executable } from "erc6551/interfaces/IERC6551Executable.sol";
+import { Upgrades } from "openzeppelin-foundry-upgrades/Upgrades.sol";
+import { IAccessControl } from "@openzeppelin/contracts/access/IAccessControl.sol";
 
-import {IEAS, Attestation, AttestationRequest, AttestationRequestData} from "eas-contracts/IEAS.sol";
-import {ISchemaRegistry} from "eas-contracts/ISchemaRegistry.sol";
+import { IEAS, Attestation, AttestationRequest, AttestationRequestData } from "eas-contracts/IEAS.sol";
+import { ISchemaRegistry } from "eas-contracts/ISchemaRegistry.sol";
 
-import {ContributionNFT} from "../../contracts/ContributionNFT.sol";
-import {Registry} from "../../contracts/TBA/Registry.sol";
-import {TokenBoundAccount} from "../../contracts/TBA/TokenBoundAccount.sol";
-import {Yohaku} from "../../contracts/Yohaku.sol";
-import {NFTFactory} from "../../contracts/NFTFactory.sol";
-import {AttesterResolver} from "../../contracts/EAS/AttesterResolver.sol";
-import {YohakuV2} from "../mock/YohakuV2.sol";
+import { ContributionNFT } from "../../contracts/ContributionNFT.sol";
+import { Registry } from "../../contracts/TBA/Registry.sol";
+import { TokenBoundAccount } from "../../contracts/TBA/TokenBoundAccount.sol";
+import { Yohaku } from "../../contracts/Yohaku.sol";
+import { NFTFactory } from "../../contracts/NFTFactory.sol";
+import { AttesterResolver } from "../../contracts/EAS/AttesterResolver.sol";
+import { YohakuV2 } from "../mock/YohakuV2.sol";
 
 contract YohakuTest is Test {
     ContributionNFT public mockERC721;
@@ -39,18 +39,9 @@ contract YohakuTest is Test {
     string schema =
         "address TokenBoundAccount,address CurrentOwner,address TokenAddress,uint256 tokenId,uint8 Score,string Description";
 
-    event Minted(
-        address indexed to,
-        address indexed account,
-        bytes32 indexed attestationUID
-    );
+    event Minted(address indexed to, address indexed account, bytes32 indexed attestationUID);
     event AttesterAdded(address indexed NewAttester);
-    event Attested(
-        address indexed recipient,
-        address indexed attester,
-        bytes32 uid,
-        bytes32 indexed schemaUID
-    );
+    event Attested(address indexed recipient, address indexed attester, bytes32 uid, bytes32 indexed schemaUID);
 
     function setUp() external {
         configureChain();
@@ -59,21 +50,12 @@ contract YohakuTest is Test {
         factory = factory = new NFTFactory(owner, eas, schemaRegistry);
         schemaUID = factory.schemaUID();
         attesterResolver = factory.resolver();
-        mockERC721 = factory.createERC721(
-            "Mock721",
-            "MOCK",
-            5,
-            "defaultImage",
-            owner
-        );
+        mockERC721 = factory.createERC721("Mock721", "MOCK", 5, "defaultImage", owner);
 
         address proxy = Upgrades.deployTransparentProxy(
             "Yohaku.sol",
             owner,
-            abi.encodeCall(
-                Yohaku.initialize,
-                (owner, "Yohaku NFT is built for community", "defaultImage")
-            )
+            abi.encodeCall(Yohaku.initialize, (owner, "Yohaku NFT is built for community", "defaultImage"))
         );
         yohaku = Yohaku(proxy);
 
@@ -92,13 +74,7 @@ contract YohakuTest is Test {
 
         // upgrade contract
         _upgradeContract(address(yohaku));
-        ContributionNFT newERC721 = factory.createERC721(
-            "NEWERC721",
-            "NEW",
-            10,
-            "defaultImage",
-            owner
-        );
+        ContributionNFT newERC721 = factory.createERC721("NEWERC721", "NEW", 10, "defaultImage", owner);
 
         vm.startPrank(owner);
         newERC721.safeMint(alice, account, "mint and attest for upgraded");
@@ -116,28 +92,17 @@ contract YohakuTest is Test {
     function testAttestManual() external {
         address account = _createTBA(alice);
         vm.startPrank(owner);
-        bytes memory _data = abi.encode(
-            account,
-            alice,
-            mockERC721,
-            0,
-            5,
-            "test"
-        );
+        bytes memory _data = abi.encode(account, alice, mockERC721, 0, 5, "test");
 
-        AttestationRequestData
-            memory attestationRequestData = AttestationRequestData({
-                recipient: account,
-                expirationTime: uint64(block.timestamp + 100),
-                revocable: true,
-                refUID: 0x0,
-                data: _data,
-                value: 0
-            });
-        AttestationRequest memory request = AttestationRequest({
-            schema: schemaUID,
-            data: attestationRequestData
+        AttestationRequestData memory attestationRequestData = AttestationRequestData({
+            recipient: account,
+            expirationTime: uint64(block.timestamp + 100),
+            revocable: true,
+            refUID: 0x0,
+            data: _data,
+            value: 0
         });
+        AttestationRequest memory request = AttestationRequest({ schema: schemaUID, data: attestationRequestData });
 
         vm.expectEmit(true, true, true, false);
         emit Attested(account, owner, 0x0, schemaUID);
@@ -151,10 +116,7 @@ contract YohakuTest is Test {
             uint256 tokenId,
             uint8 score,
             string memory description
-        ) = abi.decode(
-                attestationData,
-                (address, address, address, uint256, uint8, string)
-            );
+        ) = abi.decode(attestationData, (address, address, address, uint256, uint8, string));
 
         assertEq(tokenBoundAccount, account);
         assertEq(currentOwner, alice);
@@ -181,10 +143,7 @@ contract YohakuTest is Test {
             uint256 tokenId,
             uint8 score,
             string memory description
-        ) = abi.decode(
-                attestationData,
-                (address, address, address, uint256, uint8, string)
-            );
+        ) = abi.decode(attestationData, (address, address, address, uint256, uint8, string));
 
         assertEq(tokenBoundAccount, account);
         assertEq(currentOwner, alice);
@@ -236,15 +195,10 @@ contract YohakuTest is Test {
         address account = _createTBA(alice);
 
         IERC6551Account accountInstance = IERC6551Account(payable(account));
-        IERC6551Executable executableAccountInstance = IERC6551Executable(
-            account
-        );
+        IERC6551Executable executableAccountInstance = IERC6551Executable(account);
         assertEq(TokenBoundAccount(payable(account)).owner(), alice);
 
-        assertEq(
-            accountInstance.isValidSigner(alice, ""),
-            IERC6551Account.isValidSigner.selector
-        );
+        assertEq(accountInstance.isValidSigner(alice, ""), IERC6551Account.isValidSigner.selector);
         vm.deal(account, 1 ether);
         vm.startPrank(alice);
 
@@ -258,35 +212,19 @@ contract YohakuTest is Test {
     function testRevertInvalidAttester() external {
         address account = _createTBA(alice);
         vm.startPrank(alice);
-        bytes memory _data = abi.encode(
-            account,
-            owner,
-            mockERC721,
-            0,
-            5,
-            "test"
-        );
+        bytes memory _data = abi.encode(account, owner, mockERC721, 0, 5, "test");
 
-        AttestationRequestData
-            memory attestationRequestData = AttestationRequestData({
-                recipient: owner,
-                expirationTime: uint64(block.timestamp + 100),
-                revocable: true,
-                refUID: 0x0,
-                data: _data,
-                value: 0
-            });
-        AttestationRequest memory request = AttestationRequest({
-            schema: schemaUID,
-            data: attestationRequestData
+        AttestationRequestData memory attestationRequestData = AttestationRequestData({
+            recipient: owner,
+            expirationTime: uint64(block.timestamp + 100),
+            revocable: true,
+            refUID: 0x0,
+            data: _data,
+            value: 0
         });
+        AttestationRequest memory request = AttestationRequest({ schema: schemaUID, data: attestationRequestData });
 
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                AttesterResolver.CallerNotAttester.selector,
-                alice
-            )
-        );
+        vm.expectRevert(abi.encodeWithSelector(AttesterResolver.CallerNotAttester.selector, alice));
         eas.attest(request);
 
         vm.stopPrank();
@@ -313,9 +251,7 @@ contract YohakuTest is Test {
         assertEq(yohaku.hasRole(yohaku.MINTER_ROLE(), alice), false);
         vm.expectRevert(
             abi.encodeWithSelector(
-                IAccessControl.AccessControlUnauthorizedAccount.selector,
-                alice,
-                yohaku.MINTER_ROLE()
+                IAccessControl.AccessControlUnauthorizedAccount.selector, alice, yohaku.MINTER_ROLE()
             )
         );
         yohaku.safeMint(alice, "");
@@ -347,12 +283,7 @@ contract YohakuTest is Test {
 
         vm.startPrank(owner);
 
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                ContributionNFT.CannotHoldMoreThanOneToken.selector,
-                alice
-            )
-        );
+        vm.expectRevert(abi.encodeWithSelector(ContributionNFT.CannotHoldMoreThanOneToken.selector, alice));
         mockERC721.batchMint(recipients, accounts, "batchmint");
 
         vm.stopPrank();
@@ -362,12 +293,7 @@ contract YohakuTest is Test {
         _mintYohaku(alice, "");
         vm.startPrank(owner);
 
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                Yohaku.CannnotHoldMoreThanOneYohakuNFT.selector,
-                alice
-            )
-        );
+        vm.expectRevert(abi.encodeWithSelector(Yohaku.CannnotHoldMoreThanOneYohakuNFT.selector, alice));
         _mintYohaku(alice, "");
 
         vm.stopPrank();
@@ -452,41 +378,28 @@ contract YohakuTest is Test {
         return account;
     }
 
-    function _mintYohaku(
-        address to,
-        string memory imageUrl
-    ) internal prankception(owner) {
+    function _mintYohaku(address to, string memory imageUrl) internal prankception(owner) {
         yohaku.safeMint(to, imageUrl);
     }
 
-    function _transferYohaku(
-        address from,
-        address to,
-        uint256 tokenId
-    ) internal prankception(from) {
+    function _transferYohaku(address from, address to, uint256 tokenId) internal prankception(from) {
         yohaku.safeTransferFrom(from, to, tokenId);
     }
 
     function _upgradeContract(address proxy) internal prankception(owner) {
-        Upgrades.upgradeProxy(proxy, "YohakuV2", "");
+        Upgrades.upgradeProxy(proxy, "YohakuV2.sol", "");
     }
 
     function configureChain() public {
         if (block.chainid == 80_001) {
             eas = IEAS(0xaEF4103A04090071165F78D45D83A0C0782c2B2a);
-            schemaRegistry = ISchemaRegistry(
-                0x55D26f9ae0203EF95494AE4C170eD35f4Cf77797
-            );
+            schemaRegistry = ISchemaRegistry(0x55D26f9ae0203EF95494AE4C170eD35f4Cf77797);
         } else if (block.chainid == 137) {
             eas = IEAS(0x5E634ef5355f45A855d02D66eCD687b1502AF790);
-            schemaRegistry = ISchemaRegistry(
-                0x7876EEF51A891E737AF8ba5A5E0f0Fd29073D5a7
-            );
+            schemaRegistry = ISchemaRegistry(0x7876EEF51A891E737AF8ba5A5E0f0Fd29073D5a7);
         } else if (block.chainid == 10) {
             eas = IEAS(0x4200000000000000000000000000000000000021);
-            schemaRegistry = ISchemaRegistry(
-                0x4200000000000000000000000000000000000020
-            );
+            schemaRegistry = ISchemaRegistry(0x4200000000000000000000000000000000000020);
         } else {
             revert("Unsupported chain");
         }

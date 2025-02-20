@@ -1,17 +1,18 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.20;
 
-import {Script, console2} from "forge-std/Script.sol";
-import {ISchemaRegistry} from "eas-contracts/ISchemaRegistry.sol";
-import {IEAS} from "eas-contracts/IEAS.sol";
-import {Upgrades} from "openzeppelin-foundry-upgrades/Upgrades.sol";
+import { Script, console2 } from "forge-std/Script.sol";
+import { ISchemaRegistry } from "eas-contracts/ISchemaRegistry.sol";
+import { IEAS } from "eas-contracts/IEAS.sol";
+import { Upgrades } from "openzeppelin-foundry-upgrades/Upgrades.sol";
 
 import "../contracts/Yohaku.sol";
 import "../contracts/TBA/Registry.sol";
 import "../contracts/TBA/TokenBoundAccount.sol";
 import "../contracts/NFTFactory.sol";
 
-// forge script script/TokenBoundAccount.s.sol:TokenBoundAccountSctipt --rpc-url $OPTIMISM_SEPOLIA_RPC_URL --broadcast -vvvv --private-key $DEPLOYER_PRIVATE_KEY --etherscan-api-key $API_KEY_OPTIMISTIC_ETHERSCAN --verify
+// forge script script/TokenBoundAccount.s.sol:TokenBoundAccountSctipt --rpc-url $OPTIMISM_SEPOLIA_RPC_URL --broadcast
+// -vvvv --private-key $DEPLOYER_PRIVATE_KEY --etherscan-api-key $API_KEY_OPTIMISTIC_ETHERSCAN --verify
 contract TokenBoundAccountSctipt is Script {
     // mumbai
     address public owner = 0x06aa005386F53Ba7b980c61e0D067CaBc7602a62;

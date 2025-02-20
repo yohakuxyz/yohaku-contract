@@ -34,7 +34,11 @@ contract Yohaku is Initializable, ERC721Upgradeable, AccessControlUpgradeable {
         _disableInitializers();
     }
 
-    function initialize(address initialOwner, string memory _description, string memory defaultImageUrl)
+    function initialize(
+        address initialOwner,
+        string memory _description,
+        string memory defaultImageUrl
+    )
         public
         initializer
     {
@@ -72,7 +76,7 @@ contract Yohaku is Initializable, ERC721Upgradeable, AccessControlUpgradeable {
         uint256 tokenId = _nextTokenId++;
 
         // create a new TokenData struct and store it in the mapping
-        TokenData memory newTokenData = TokenData({owner: to, description: description, imageUrl: imageUrl});
+        TokenData memory newTokenData = TokenData({ owner: to, description: description, imageUrl: imageUrl });
         _tokenData[tokenId] = newTokenData;
 
         // mint the token
@@ -96,7 +100,11 @@ contract Yohaku is Initializable, ERC721Upgradeable, AccessControlUpgradeable {
 
     // The following functions are overrides required by Solidity.
 
-    function _update(address to, uint256 tokenId, address auth)
+    function _update(
+        address to,
+        uint256 tokenId,
+        address auth
+    )
         internal
         override(ERC721Upgradeable)
         returns (address)

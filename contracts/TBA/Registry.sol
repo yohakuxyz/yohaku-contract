@@ -1,17 +1,21 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.20;
 
-import {IERC6551Registry} from "erc6551/interfaces/IERC6551Registry.sol";
+import { IERC6551Registry } from "erc6551/interfaces/IERC6551Registry.sol";
 
 contract Registry is IERC6551Registry {
-    // ref: https://github.com/erc6551/reference/blob/43a84573bb47b0df3ab543a20365f4974f56a809/src/ERC6551Registry.sol#L53-L54
+    // ref:
+    // https://github.com/erc6551/reference/blob/43a84573bb47b0df3ab543a20365f4974f56a809/src/ERC6551Registry.sol#L53-L54
     function createAccount(
         address implementation,
         bytes32 salt,
         uint256 chainId,
         address tokenContract,
         uint256 tokenId
-    ) external returns (address) {
+    )
+        external
+        returns (address)
+    {
         assembly {
             // Memory Layout:
             // ----
@@ -81,7 +85,13 @@ contract Registry is IERC6551Registry {
         }
     }
 
-    function account(address implementation, bytes32 salt, uint256 chainId, address tokenContract, uint256 tokenId)
+    function account(
+        address implementation,
+        bytes32 salt,
+        uint256 chainId,
+        address tokenContract,
+        uint256 tokenId
+    )
         external
         view
         returns (address)
