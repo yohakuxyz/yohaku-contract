@@ -6,3 +6,4 @@ erc6551/=lib/erc6551/src/
 forge-std/=lib/forge-std/src/
 hardhat/=node_modules/hardhat/
 openzeppelin-foundry-upgrades/=lib/openzeppelin-foundry-upgrades/src/
+eas-contracts/=lib/eas-contracts/contracts/

@@ -3,10 +3,11 @@
   "description": "core contract for Yohaku NFT",
   "license": "MIT",
   "scripts": {
+    "setup": "pnpm install && forge install && cp .env.example .env",
     "compile": "forge compile",
     "build": "forge build",
     "test:coverage": "forge coverage",
-    "test:op": "forge test --fork-url https://mainnet.optimism.io --match-path test/foundry/Yohaku.t.sol",
+    "test:op": "forge clean && forge test --fork-url optimism --fork-block-number 132218259 --match-path test/foundry/Yohaku.t.sol",
     "deploy:yohaku-op": "forge script script/YohakuNFT.s.sol --rpc-url optimism --broadcast -vvvv --private-key $DEPLOYER_PRIVATE_KEY --etherscan-api-key optimism --verify",
     "deploy:factory-op": "forge script script/NFTFactory.s.sol --rpc-url optimism --broadcast -vvvv --private-key $DEPLOYER_PRIVATE_KEY --etherscan-api-key optimism --verify",
     "format": "forge fmt",

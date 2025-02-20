@@ -11,9 +11,8 @@ import {ISchemaRegistry} from "eas-contracts/ISchemaRegistry.sol";
 
 import "./NFTFactory.sol";
 
-error CannotHoldMoreThanOneToken(address owner);
-
 contract ContributionNFT is ERC721, AccessControl {
+    error CannotHoldMoreThanOneToken(address owner);
     struct TokenData {
         address owner;
         string description;
@@ -39,7 +38,11 @@ contract ContributionNFT is ERC721, AccessControl {
 
     mapping(address => uint256) public userOwnedToken;
 
-    event Minted(address indexed to, address indexed account, bytes32 indexed attestationUID);
+    event Minted(
+        address indexed to,
+        address indexed account,
+        bytes32 indexed attestationUID
+    );
 
     modifier onlyMinter() {
         require(hasRole(MINTER_ROLE, msg.sender), "Caller is not a minter");
@@ -47,7 +50,10 @@ contract ContributionNFT is ERC721, AccessControl {
     }
 
     modifier onlyAdmin() {
-        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Caller is not a admin");
+        require(
+            hasRole(DEFAULT_ADMIN_ROLE, msg.sender),
+            "Caller is not a admin"
+        );
         _;
     }
 
@@ -69,11 +75,16 @@ contract ContributionNFT is ERC721, AccessControl {
         eas = nftFactory.eas();
     }
 
-    function setDefaultImageUrl(string memory defaultImageUrl) external onlyAdmin {
+    function setDefaultImageUrl(
+        string memory defaultImageUrl
+    ) external onlyAdmin {
         _defaultImageUrl = defaultImageUrl;
     }
 
-    function setImageURL(uint256 tokenId, string memory imageUrl) external onlyAdmin {
+    function setImageURL(
+        uint256 tokenId,
+        string memory imageUrl
+    ) external onlyAdmin {
         _tokenData[tokenId].imageUrl = imageUrl;
     }
 
@@ -84,12 +95,22 @@ contract ContributionNFT is ERC721, AccessControl {
     /// @param score The score
     /// @param description The description of the NFT
     /// @return attestationUID The unique identifier of the attestation
-    function _attest(address to, address account, uint256 tokenId, uint8 score, string memory description)
-        internal
-        returns (bytes32 attestationUID)
-    {
+    function _attest(
+        address to,
+        address account,
+        uint256 tokenId,
+        uint8 score,
+        string memory description
+    ) internal returns (bytes32 attestationUID) {
         // "address TokenBoundAccount,address CurrentOwner,address TokenAddress,uint256 tokenId,uint8 Score,string Description";
-        bytes memory data = abi.encode(account, to, address(this), tokenId, score, description);
+        bytes memory data = abi.encode(
+            account,
+            to,
+            address(this),
+            tokenId,
+            score,
+            description
+        );
         AttestationRequestData memory requestData = AttestationRequestData({
             recipient: account,
             expirationTime: 0,
@@ -98,7 +119,10 @@ contract ContributionNFT is ERC721, AccessControl {
             data: data,
             value: 0
         });
-        AttestationRequest memory request = AttestationRequest({schema: nftFactory.schemaUID(), data: requestData});
+        AttestationRequest memory request = AttestationRequest({
+            schema: nftFactory.schemaUID(),
+            data: requestData
+        });
         attestationUID = eas.attest(request);
     }
 
@@ -110,7 +134,11 @@ contract ContributionNFT is ERC721, AccessControl {
     /// @param to The recipient of the NFT
     /// @param account The Token Bound Account that receives the attestation
     /// @param description The description of the NFT
-    function safeMint(address to, address account, string memory description) external onlyMinter returns (bytes32) {
+    function safeMint(
+        address to,
+        address account,
+        string memory description
+    ) external onlyMinter returns (bytes32) {
         uint256 tokenId = _nextTokenId++;
 
         bytes32 uid = _beforeMint(tokenId, to, account, description);
@@ -124,10 +152,12 @@ contract ContributionNFT is ERC721, AccessControl {
         return uid;
     }
 
-    function _beforeMint(uint256 tokenId, address to, address account, string memory description)
-        internal
-        returns (bytes32 uid)
-    {
+    function _beforeMint(
+        uint256 tokenId,
+        address to,
+        address account,
+        string memory description
+    ) internal returns (bytes32 uid) {
         if (balanceOf(to) > 0) {
             revert CannotHoldMoreThanOneToken(to);
         }
@@ -149,8 +179,15 @@ contract ContributionNFT is ERC721, AccessControl {
         return uid;
     }
 
-    function batchMint(address[] memory to, address[] memory account, string memory description) external onlyMinter {
-        require(to.length == account.length, "to and account length must be equal");
+    function batchMint(
+        address[] memory to,
+        address[] memory account,
+        string memory description
+    ) external onlyMinter {
+        require(
+            to.length == account.length,
+            "to and account length must be equal"
+        );
         for (uint256 i = 0; i < to.length; i++) {
             uint256 tokenId = _nextTokenId++;
 
@@ -179,7 +216,9 @@ contract ContributionNFT is ERC721, AccessControl {
         basePoints = newPoints;
     }
 
-    function getTokenData(uint256 tokenId) public view returns (TokenData memory tokenData) {
+    function getTokenData(
+        uint256 tokenId
+    ) public view returns (TokenData memory tokenData) {
         tokenData = _tokenData[tokenId];
         return tokenData;
     }
@@ -188,7 +227,9 @@ contract ContributionNFT is ERC721, AccessControl {
         return basePoints;
     }
 
-    function tokenURI(uint256 tokenId) public view override(ERC721) returns (string memory) {
+    function tokenURI(
+        uint256 tokenId
+    ) public view override(ERC721) returns (string memory) {
         TokenData memory tokenData = _tokenData[tokenId];
 
         bytes memory attributes = abi.encodePacked(
@@ -205,7 +246,9 @@ contract ContributionNFT is ERC721, AccessControl {
             basePoints,
             '"}'
         );
-        string memory imageUrl = bytes(tokenData.imageUrl).length > 0 ? tokenData.imageUrl : _defaultImageUrl;
+        string memory imageUrl = bytes(tokenData.imageUrl).length > 0
+            ? tokenData.imageUrl
+            : _defaultImageUrl;
 
         bytes memory metadata = abi.encodePacked(
             '{"name": "',
@@ -220,16 +263,28 @@ contract ContributionNFT is ERC721, AccessControl {
             attributes,
             "]}"
         );
-        return string(abi.encodePacked("data:application/json;base64,", Base64.encode(metadata)));
+        return
+            string(
+                abi.encodePacked(
+                    "data:application/json;base64,",
+                    Base64.encode(metadata)
+                )
+            );
     }
 
     // The following functions are overrides required by Solidity.
 
-    function _update(address to, uint256 tokenId, address auth) internal override(ERC721) returns (address) {
+    function _update(
+        address to,
+        uint256 tokenId,
+        address auth
+    ) internal override(ERC721) returns (address) {
         return super._update(to, tokenId, auth);
     }
 
-    function supportsInterface(bytes4 interfaceId) public view override(ERC721, AccessControl) returns (bool) {
+    function supportsInterface(
+        bytes4 interfaceId
+    ) public view override(ERC721, AccessControl) returns (bool) {
         return super.supportsInterface(interfaceId);
     }
 }

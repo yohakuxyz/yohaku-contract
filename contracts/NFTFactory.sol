@@ -18,11 +18,20 @@ contract NFTFactory {
     IEAS public eas;
     AttesterResolver public resolver;
 
-    event FactoryCreated(address factoryAddress, address easAddress, address resolverAddress, bytes32 schemaUID);
+    event FactoryCreated(
+        address factoryAddress,
+        address easAddress,
+        address resolverAddress,
+        bytes32 schemaUID
+    );
 
     event NFTCreated(address nftAddress);
 
-    constructor(address initialMinter, IEAS _eas, ISchemaRegistry _schemaRegistry) {
+    constructor(
+        address initialMinter,
+        IEAS _eas,
+        ISchemaRegistry _schemaRegistry
+    ) {
         // set EAS contract
         eas = _eas;
 
@@ -42,7 +51,12 @@ contract NFTFactory {
         schemaUID = _schemaUID;
 
         // emit FactoryCreated event
-        emit FactoryCreated(address(this), address(eas), address(resolver), schemaUID);
+        emit FactoryCreated(
+            address(this),
+            address(eas),
+            address(resolver),
+            schemaUID
+        );
     }
 
     // owner => tokenAddress => tokenIds
@@ -55,15 +69,25 @@ contract NFTFactory {
         string memory _defaultImageUrl,
         address initialMinter
     ) public returns (ContributionNFT) {
-        ContributionNFT nft =
-            new ContributionNFT(name, symbol, _basePoints, NFTFactory(address(this)), _defaultImageUrl, initialMinter);
+        ContributionNFT nft = new ContributionNFT(
+            name,
+            symbol,
+            _basePoints,
+            NFTFactory(address(this)),
+            _defaultImageUrl,
+            initialMinter
+        );
         erc721s.push(nft);
         resolver.addAttester(address(nft));
         emit NFTCreated(address(nft));
         return nft;
     }
 
-    function getCreatedERC721s() public view returns (ContributionNFT[] memory) {
+    function getCreatedERC721s()
+        public
+        view
+        returns (ContributionNFT[] memory)
+    {
         return erc721s;
     }
 }
