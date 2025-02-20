@@ -5,21 +5,20 @@ import { ERC721Upgradeable } from "@openzeppelin/contracts-upgradeable/token/ERC
 import { AccessControlUpgradeable } from "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import { ERC721PausableUpgradeable } from
     "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721PausableUpgradeable.sol";
-
 import { Initializable } from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-
 import "@openzeppelin/contracts/utils/Base64.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 
 contract Yohaku is Initializable, ERC721Upgradeable, ERC721PausableUpgradeable, AccessControlUpgradeable {
     using Strings for uint256;
 
-    string private _defaultImageUrl;
+    string public defaultImageUrl;
     string public description;
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
     bytes32 public constant PAUSER_ROLE = keccak256("PAUSER_ROLE");
 
     uint256 private _nextTokenId;
+
     mapping(uint256 => TokenData) public _tokenData;
 
     mapping(uint256 => address[]) public previousOwners;
@@ -40,7 +39,7 @@ contract Yohaku is Initializable, ERC721Upgradeable, ERC721PausableUpgradeable, 
     function initialize(
         address initialOwner,
         string memory _description,
-        string memory defaultImageUrl
+        string memory _defaultImageUrl
     )
         public
         initializer
@@ -49,15 +48,15 @@ contract Yohaku is Initializable, ERC721Upgradeable, ERC721PausableUpgradeable, 
         __ERC721Pausable_init();
         __AccessControl_init();
 
-        _defaultImageUrl = defaultImageUrl;
+        defaultImageUrl = _defaultImageUrl;
         description = _description;
         _grantRole(DEFAULT_ADMIN_ROLE, initialOwner);
         _grantRole(MINTER_ROLE, initialOwner);
         _grantRole(PAUSER_ROLE, initialOwner);
     }
 
-    function setDefaultImageUrl(string memory defaultImageUrl) external onlyRole(DEFAULT_ADMIN_ROLE) {
-        _defaultImageUrl = defaultImageUrl;
+    function setDefaultImageUrl(string memory _defaultImageUrl) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        defaultImageUrl = _defaultImageUrl;
     }
 
     function setImageURL(uint256 tokenId, string memory imageUrl) external onlyRole(DEFAULT_ADMIN_ROLE) {
@@ -144,7 +143,7 @@ contract Yohaku is Initializable, ERC721Upgradeable, ERC721PausableUpgradeable, 
             '"}'
         );
 
-        string memory imageUrl = bytes(tokenData.imageUrl).length > 0 ? tokenData.imageUrl : _defaultImageUrl;
+        string memory imageUrl = bytes(tokenData.imageUrl).length > 0 ? tokenData.imageUrl : defaultImageUrl;
 
         bytes memory metadata = abi.encodePacked(
             '{"name": "[]Yohaku 2024 #',
