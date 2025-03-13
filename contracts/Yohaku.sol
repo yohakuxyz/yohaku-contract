@@ -36,6 +36,10 @@ contract Yohaku is Initializable, ERC721Upgradeable, ERC721PausableUpgradeable, 
         string imageUrl;
     }
 
+    function version() public pure virtual returns (string memory) {
+        return "v1.0.0";
+    }
+
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
         _disableInitializers();
@@ -47,6 +51,7 @@ contract Yohaku is Initializable, ERC721Upgradeable, ERC721PausableUpgradeable, 
         string memory _defaultImageUrl
     )
         public
+        virtual
         initializer
     {
         __ERC721_init("YohakuNFT", "YHK");

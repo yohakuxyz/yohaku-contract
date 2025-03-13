@@ -5,6 +5,16 @@ import {Yohaku} from "../../contracts/Yohaku.sol";
 
 /// @custom:oz-upgrades-from Yohaku
 contract YohakuV2 is Yohaku {
+    function initializeV2(
+        address owner,
+        string memory _description,
+        string memory _defaultImageUrl
+    ) public reinitializer(2) {}
+
+    function version() public pure virtual override returns (string memory) {
+        return "v2.0.0";
+    }
+
     function revokeMinter(
         address minter
     ) external onlyRole(DEFAULT_ADMIN_ROLE) {
