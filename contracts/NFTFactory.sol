@@ -49,9 +49,6 @@ contract NFTFactory is AccessControl {
         emit FactoryCreated(address(this), address(eas), address(resolver), schemaUID);
     }
 
-    /// @notice mapping owner => tokenAddress => tokenIds
-    mapping(address => mapping(address => uint256[])) private _ownedTokens;
-
     function addAttester(address newAttester) external onlyRole(DEFAULT_ADMIN_ROLE) {
         resolver.addAttester(newAttester);
     }
@@ -59,15 +56,15 @@ contract NFTFactory is AccessControl {
     function createERC721(
         string calldata name,
         string calldata symbol,
-        uint8 _basePoints,
-        string memory _defaultImageUrl,
+        uint8 basePoints,
+        string memory defaultImageUrl,
         address initialMinter
     )
         public
         returns (ContributionNFT)
     {
         ContributionNFT nft =
-            new ContributionNFT(name, symbol, _basePoints, NFTFactory(address(this)), _defaultImageUrl, initialMinter);
+            new ContributionNFT(name, symbol, basePoints, NFTFactory(address(this)), defaultImageUrl, initialMinter);
         erc721s.push(nft);
         resolver.addAttester(address(nft));
         emit NFTCreated(address(nft));

@@ -177,16 +177,16 @@ contract ContributionNFT is ERC721, AccessControl {
         }
     }
 
-    function setEAS(IEAS _eas) external onlyAdmin {
-        eas = _eas;
+    function setEAS(IEAS eas_) external onlyAdmin {
+        eas = eas_;
     }
 
-    function setNFTFactory(NFTFactory _nftFactory) external onlyAdmin {
-        nftFactory = _nftFactory;
+    function setNFTFactory(NFTFactory factory) external onlyAdmin {
+        nftFactory = factory;
     }
 
-    function setSchema(string memory _schema) external onlyAdmin {
-        schema = _schema;
+    function setSchema(string memory schema_) external onlyAdmin {
+        schema = schema_;
     }
 
     function updatePoints(uint8 newPoints) external onlyAdmin {

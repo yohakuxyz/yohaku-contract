@@ -7,11 +7,11 @@ import {Yohaku} from "../../contracts/Yohaku.sol";
 contract YohakuV2 is Yohaku {
     function initializeV2(
         address owner,
-        string memory _description,
-        string memory _defaultImageUrl
+        string memory description,
+        string memory imageURL
     ) public reinitializer(2) {
-        defaultImageUrl = _defaultImageUrl;
-        description = _description;
+        defaultImageUrl = imageURL;
+        defaultDescription = description;
         _grantRole(DEFAULT_ADMIN_ROLE, owner);
     }
 

@@ -18,14 +18,14 @@ contract Yohaku is Initializable, ERC721Upgradeable, ERC721PausableUpgradeable, 
     using Strings for uint256;
 
     string public defaultImageUrl;
-    string public description;
+    string public defaultDescription;
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
     bytes32 public constant PAUSER_ROLE = keccak256("PAUSER_ROLE");
 
     uint256 private _nextTokenId;
 
     /// @notice mapping of token ID to TokenData struct
-    mapping(uint256 => TokenData) public _tokenData;
+    mapping(uint256 => TokenData) public tokenData;
 
     /// @notice mapping of token ID to previous owners
     mapping(uint256 => address[]) public previousOwners;
@@ -49,8 +49,8 @@ contract Yohaku is Initializable, ERC721Upgradeable, ERC721PausableUpgradeable, 
 
     function initialize(
         address initialOwner,
-        string memory _description,
-        string memory _defaultImageUrl
+        string memory description,
+        string memory imageURL
     )
         public
         virtual
@@ -64,15 +64,15 @@ contract Yohaku is Initializable, ERC721Upgradeable, ERC721PausableUpgradeable, 
         _grantRole(MINTER_ROLE, initialOwner);
         _grantRole(PAUSER_ROLE, initialOwner);
 
-        defaultImageUrl = _defaultImageUrl;
-        description = _description;
+        defaultDescription = description;
+        defaultImageUrl = imageURL;
     }
 
     /// @notice Set the default image URL to be used when tokenURI() is called
     /// @dev The caller must have the DEFAULT_ADMIN_ROLE
-    /// @param _defaultImageUrl The default image URL to be used when tokenURI() is called
-    function setDefaultImageUrl(string memory _defaultImageUrl) external onlyRole(DEFAULT_ADMIN_ROLE) {
-        defaultImageUrl = _defaultImageUrl;
+    /// @param imageURL The default image URL to be used when tokenURI() is called
+    function setDefaultImageUrl(string memory imageURL) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        defaultImageUrl = imageURL;
     }
 
     /// @notice Set an Image URL for the given token ID
@@ -80,7 +80,7 @@ contract Yohaku is Initializable, ERC721Upgradeable, ERC721PausableUpgradeable, 
     /// @param tokenId The token ID
     /// @param imageUrl The URL of the image to be displayed
     function setImageURL(uint256 tokenId, string memory imageUrl) external onlyRole(DEFAULT_ADMIN_ROLE) {
-        _tokenData[tokenId].imageUrl = imageUrl;
+        tokenData[tokenId].imageUrl = imageUrl;
     }
 
     /// @notice Mint a new NFT to the given address
@@ -107,8 +107,9 @@ contract Yohaku is Initializable, ERC721Upgradeable, ERC721PausableUpgradeable, 
         uint256 tokenId = _nextTokenId++;
 
         // create a new TokenData struct and store it in the mapping
-        TokenData memory newTokenData = TokenData({ owner: recipient, description: description, imageUrl: imageUrl });
-        _tokenData[tokenId] = newTokenData;
+        TokenData memory newTokenData =
+            TokenData({ owner: recipient, description: defaultDescription, imageUrl: imageUrl });
+        tokenData[tokenId] = newTokenData;
 
         // mint the token
         _safeMint(recipient, tokenId);
@@ -117,8 +118,8 @@ contract Yohaku is Initializable, ERC721Upgradeable, ERC721PausableUpgradeable, 
         return newTokenData;
     }
 
-    function setMinter(address _minter) public onlyRole(DEFAULT_ADMIN_ROLE) {
-        grantRole(MINTER_ROLE, _minter);
+    function setMinter(address minter) public onlyRole(DEFAULT_ADMIN_ROLE) {
+        grantRole(MINTER_ROLE, minter);
     }
 
     function getOwners(uint256 tokenId) public view returns (address[] memory) {
@@ -126,7 +127,7 @@ contract Yohaku is Initializable, ERC721Upgradeable, ERC721PausableUpgradeable, 
     }
 
     function getTokenData(uint256 tokenId) public view returns (TokenData memory) {
-        return _tokenData[tokenId];
+        return tokenData[tokenId];
     }
 
     function pause() public onlyRole(PAUSER_ROLE) {
@@ -152,7 +153,7 @@ contract Yohaku is Initializable, ERC721Upgradeable, ERC721PausableUpgradeable, 
         returns (address)
     {
         previousOwners[tokenId].push(to);
-        _tokenData[tokenId].owner = to;
+        tokenData[tokenId].owner = to;
         return super._update(to, tokenId, auth);
     }
 
@@ -162,7 +163,7 @@ contract Yohaku is Initializable, ERC721Upgradeable, ERC721PausableUpgradeable, 
     /// @param tokenId The token ID
     /// @return The token URI
     function tokenURI(uint256 tokenId) public view override(ERC721Upgradeable) returns (string memory) {
-        TokenData memory tokenData = _tokenData[tokenId];
+        TokenData memory data = tokenData[tokenId];
 
         bytes memory attributes = abi.encodePacked(
             '{"trait_type": "ID", "value": "',
@@ -173,13 +174,13 @@ contract Yohaku is Initializable, ERC721Upgradeable, ERC721PausableUpgradeable, 
             '"}'
         );
 
-        string memory imageUrl = bytes(tokenData.imageUrl).length > 0 ? tokenData.imageUrl : defaultImageUrl;
+        string memory imageUrl = bytes(data.imageUrl).length > 0 ? data.imageUrl : defaultImageUrl;
 
         bytes memory metadata = abi.encodePacked(
             '{"name": "[]Yohaku #',
             tokenId.toString(),
             '", "description": "',
-            tokenData.description,
+            data.description,
             '", "image": "',
             imageUrl,
             '", "attributes": [',
