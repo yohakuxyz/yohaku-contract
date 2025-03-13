@@ -9,10 +9,12 @@ import { Initializable } from "@openzeppelin/contracts-upgradeable/proxy/utils/I
 import "@openzeppelin/contracts/utils/Base64.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 
+import { ISemver } from "./interfaces/ISemver.sol";
+
 /// @title Core ERC721 Upgradeable smart contract for Yohaku NFT
 /// @author shutanaka.eth
 /// @dev Transparent upgradeable ERC721 contract with pausable and access control from OpenZeppelin
-contract Yohaku is Initializable, ERC721Upgradeable, ERC721PausableUpgradeable, AccessControlUpgradeable {
+contract Yohaku is Initializable, ERC721Upgradeable, ERC721PausableUpgradeable, AccessControlUpgradeable, ISemver {
     using Strings for uint256;
 
     string public defaultImageUrl;
