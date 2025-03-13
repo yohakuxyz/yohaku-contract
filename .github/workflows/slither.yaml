@@ -19,7 +19,8 @@ jobs:
         id: slither
         with:
           fail-on: none
-          slither-args: --exclude lib/ --checklist --markdown-root ${{ github.server_url }}/${{ github.repository }}/blob/${{ github.sha }}/
+          target: 'contracts/' 
+          slither-args: --checklist --markdown-root ${{ github.server_url }}/${{ github.repository }}/blob/${{ github.sha }}/
 
       - name: Create/update checklist as PR comment
         uses: actions/github-script@v6
