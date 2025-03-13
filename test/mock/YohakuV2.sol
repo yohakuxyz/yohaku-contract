@@ -9,7 +9,11 @@ contract YohakuV2 is Yohaku {
         address owner,
         string memory _description,
         string memory _defaultImageUrl
-    ) public reinitializer(2) {}
+    ) public reinitializer(2) {
+        defaultImageUrl = _defaultImageUrl;
+        description = _description;
+        _grantRole(DEFAULT_ADMIN_ROLE, owner);
+    }
 
     function version() public pure virtual override returns (string memory) {
         return "v2.0.0";
