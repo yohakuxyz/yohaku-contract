@@ -42,9 +42,8 @@ contract ContributionNFT is ERC721, AccessControl {
 
     mapping(uint256 => TokenData) private _tokenData;
 
-    mapping(address => uint256) public userOwnedToken;
-
     event Minted(address indexed to, address indexed account, bytes32 indexed attestationUID);
+    event PointUpdated(uint8 newPoints);
 
     modifier onlyMinter() {
         require(hasRole(MINTER_ROLE, msg.sender), "Caller is not a minter");
@@ -114,10 +113,6 @@ contract ContributionNFT is ERC721, AccessControl {
         });
         AttestationRequest memory request = AttestationRequest({ schema: nftFactory.schemaUID(), data: requestData });
         attestationUID = eas.attest(request);
-    }
-
-    function getOwnedToken(address _owner) public view returns (uint256) {
-        return userOwnedToken[_owner];
     }
 
     /// @notice Mint a new NFT and send it to the recipient
@@ -196,6 +191,7 @@ contract ContributionNFT is ERC721, AccessControl {
 
     function updatePoints(uint8 newPoints) external onlyAdmin {
         basePoints = newPoints;
+        emit PointUpdated(newPoints);
     }
 
     function getTokenData(uint256 tokenId) public view returns (TokenData memory tokenData) {

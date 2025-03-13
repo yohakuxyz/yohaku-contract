@@ -16,3 +16,5 @@ node_modules
 # foundry files
 /out
 /broadcast
+
+.vscode
