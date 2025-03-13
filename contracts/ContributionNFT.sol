@@ -1,18 +1,23 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.28;
 
-import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-import "@openzeppelin/contracts/access/AccessControl.sol";
+import { ERC721 } from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import { AccessControl } from "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/utils/Base64.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 
 import { IEAS, Attestation, AttestationRequest, AttestationRequestData } from "eas-contracts/IEAS.sol";
 import { ISchemaRegistry } from "eas-contracts/ISchemaRegistry.sol";
 
-import "./NFTFactory.sol";
+import { NFTFactory } from "./NFTFactory.sol";
 
+/// @title Contribution NFT smart contract
+/// @author shutanaka.eth
+/// @notice ERC721 smart contract which represents each contribution as an NFT
+/// @dev ERC721 smart contract with AccessControl from OpenZeppelin
+/// @dev Ensure that Contribution NFTs are minted by the NFTFactory contract
 contract ContributionNFT is ERC721, AccessControl {
-    error CannotHoldMoreThanOneToken(address owner);
+    error ALREADY_HAVE_TOKEN(address owner);
 
     struct TokenData {
         address owner;
@@ -143,7 +148,7 @@ contract ContributionNFT is ERC721, AccessControl {
         returns (bytes32 uid)
     {
         if (balanceOf(to) > 0) {
-            revert CannotHoldMoreThanOneToken(to);
+            revert ALREADY_HAVE_TOKEN(to);
         }
         // store token data
         TokenData memory tokenData = _tokenData[tokenId];
