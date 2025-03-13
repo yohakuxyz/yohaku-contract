@@ -14,10 +14,13 @@ contract AttesterResolver is SchemaResolver, AccessControl {
 
     error INVALID_ATTESTER(address caller);
     error INVALID_FACTORY(address caller);
+    error ZERO_ADDRESS();
 
     event AttesterAdded(address indexed newAttester);
 
     constructor(IEAS eas, address _factory, address initialAttester) SchemaResolver(eas) {
+        require(_factory != address(0), ZERO_ADDRESS());
+        require(initialAttester != address(0), ZERO_ADDRESS());
         factory = _factory;
 
         _grantRole(DEFAULT_ADMIN_ROLE, _factory);
