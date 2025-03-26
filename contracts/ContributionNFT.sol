@@ -17,7 +17,22 @@ import { NFTFactory } from "./NFTFactory.sol";
 /// @dev ERC721 smart contract with AccessControl from OpenZeppelin
 /// @dev Ensure that Contribution NFTs are minted by the NFTFactory contract
 contract ContributionNFT is ERC721, AccessControl {
+    using Strings for uint256;
+
+    uint8 public basePoints;
+    bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
+    uint256 private _nextTokenId;
+    string private _defaultImageUrl;
+    string schema =
+        "address TokenBoundAccount,address CurrentOwner,address TokenAddress,uint256 tokenId,uint8 Score,string Description";
+    NFTFactory public nftFactory;
+    IEAS public eas;
+
+    mapping(uint256 => TokenData) private _tokenData;
+
     error ALREADY_HAVE_TOKEN(address owner);
+    error INVALID_MINTER(address minter);
+    error INVALID_ADMIN(address admin);
 
     struct TokenData {
         address owner;
@@ -25,35 +40,8 @@ contract ContributionNFT is ERC721, AccessControl {
         string imageUrl;
     }
 
-    bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
-
-    using Strings for uint256;
-
-    uint8 public basePoints;
-    uint256 private _nextTokenId;
-    string private _defaultImageUrl;
-
-    string schema =
-        "address TokenBoundAccount,address CurrentOwner,address TokenAddress,uint256 tokenId,uint8 Score,string Description";
-
-    NFTFactory public nftFactory;
-
-    IEAS public eas;
-
-    mapping(uint256 => TokenData) private _tokenData;
-
     event Minted(address indexed to, address indexed account, bytes32 indexed attestationUID);
-    event PointUpdated(uint8 newPoints);
-
-    modifier onlyMinter() {
-        require(hasRole(MINTER_ROLE, msg.sender), "Caller is not a minter");
-        _;
-    }
-
-    modifier onlyAdmin() {
-        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Caller is not a admin");
-        _;
-    }
+    event PointUpdated(uint8 point);
 
     constructor(
         string memory name,
@@ -75,11 +63,11 @@ contract ContributionNFT is ERC721, AccessControl {
         eas = nftFactory.eas();
     }
 
-    function setDefaultImageUrl(string memory defaultImageUrl) external onlyAdmin {
+    function setDefaultImageUrl(string memory defaultImageUrl) external onlyRole(DEFAULT_ADMIN_ROLE) {
         _defaultImageUrl = defaultImageUrl;
     }
 
-    function setImageURL(uint256 tokenId, string memory imageUrl) external onlyAdmin {
+    function setImageURL(uint256 tokenId, string memory imageUrl) external onlyRole(DEFAULT_ADMIN_ROLE) {
         _tokenData[tokenId].imageUrl = imageUrl;
     }
 
@@ -119,7 +107,15 @@ contract ContributionNFT is ERC721, AccessControl {
     /// @param to The recipient of the NFT
     /// @param account The Token Bound Account that receives the attestation
     /// @param description The description of the NFT
-    function safeMint(address to, address account, string memory description) external onlyMinter returns (bytes32) {
+    function safeMint(
+        address to,
+        address account,
+        string memory description
+    )
+        external
+        onlyRole(MINTER_ROLE)
+        returns (bytes32)
+    {
         uint256 tokenId = _nextTokenId++;
 
         bytes32 uid = _beforeMint(tokenId, to, account, description);
@@ -163,7 +159,14 @@ contract ContributionNFT is ERC721, AccessControl {
         return uid;
     }
 
-    function batchMint(address[] memory to, address[] memory account, string memory description) external onlyMinter {
+    function batchMint(
+        address[] memory to,
+        address[] memory account,
+        string memory description
+    )
+        external
+        onlyRole(MINTER_ROLE)
+    {
         require(to.length == account.length, "to and account length must be equal");
         for (uint256 i = 0; i < to.length; i++) {
             uint256 tokenId = _nextTokenId++;
@@ -177,19 +180,7 @@ contract ContributionNFT is ERC721, AccessControl {
         }
     }
 
-    function setEAS(IEAS eas_) external onlyAdmin {
-        eas = eas_;
-    }
-
-    function setNFTFactory(NFTFactory factory) external onlyAdmin {
-        nftFactory = factory;
-    }
-
-    function setSchema(string memory schema_) external onlyAdmin {
-        schema = schema_;
-    }
-
-    function updatePoints(uint8 newPoints) external onlyAdmin {
+    function updatePoints(uint8 newPoints) external onlyRole(DEFAULT_ADMIN_ROLE) {
         basePoints = newPoints;
         emit PointUpdated(newPoints);
     }
