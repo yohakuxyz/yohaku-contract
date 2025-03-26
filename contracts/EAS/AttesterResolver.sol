@@ -16,7 +16,7 @@ contract AttesterResolver is SchemaResolver, AccessControl {
     error INVALID_FACTORY(address caller);
     error ZERO_ADDRESS();
 
-    event AttesterAdded(address indexed newAttester);
+    event AttesterAdded(address indexed attester);
 
     constructor(IEAS eas, address _factory, address initialAttester) SchemaResolver(eas) {
         require(_factory != address(0), ZERO_ADDRESS());
@@ -35,9 +35,9 @@ contract AttesterResolver is SchemaResolver, AccessControl {
         _;
     }
 
-    function addAttester(address newAttester) external onlyAttesters(msg.sender) {
-        _grantRole(MINTER_ROLE, newAttester);
-        emit AttesterAdded(newAttester);
+    function addAttester(address attester) external onlyAttesters(msg.sender) {
+        _grantRole(MINTER_ROLE, attester);
+        emit AttesterAdded(attester);
     }
 
     function onAttest(Attestation calldata attestation, uint256 /*value*/ ) internal view override returns (bool) {
