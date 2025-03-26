@@ -6,7 +6,7 @@
     "setup": "pnpm install && forge install && cp .env.example .env",
     "compile": "forge fmt && forge compile",
     "build": "forge fmt && forge build",
-    "test:coverage": "forge coverage",
+    "test:coverage": "forge coverage --fork-url https://mainnet.optimism.io",
     "test:op": "forge clean && forge fmt && forge test --fork-url https://mainnet.optimism.io --fork-block-number 132218259 --match-path test/foundry/Yohaku.t.sol",
     "deploy:yohaku-op": "forge script script/YohakuNFT.s.sol --rpc-url https://mainnet.optimism.io --broadcast -vvvv --private-key $DEPLOYER_PRIVATE_KEY --etherscan-api-key optimism --verify",
     "deploy:factory-op": "forge script script/NFTFactory.s.sol --rpc-url https://mainnet.optimism.io --broadcast -vvvv --private-key $DEPLOYER_PRIVATE_KEY --etherscan-api-key optimism --verify",
