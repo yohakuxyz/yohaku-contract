@@ -102,7 +102,7 @@ jobs:
 
       # Generate coverage report
       - name: Run coverage
-        run: pnpm:test:coverage --report summary --report lcov
+        run: pnpm test:coverage --report summary --report lcov
 
       # Adjust the paths in this step to exclude specific directories from coverage analysis.
       - name: Filter directories
