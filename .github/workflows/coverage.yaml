@@ -19,7 +19,7 @@ jobs:
         with:
           version: 9.5.0
           run_install: true
-        - name: "Install pnpm dependencies"
+      - name: "Install pnpm dependencies"
           run: "pnpm install"
       # Generate coverage report
       - name: Run coverage
