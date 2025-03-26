@@ -21,7 +21,6 @@ contract Yohaku is Initializable, ERC721Upgradeable, ERC721PausableUpgradeable, 
     string public defaultDescription;
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
     bytes32 public constant PAUSER_ROLE = keccak256("PAUSER_ROLE");
-
     uint256 private _nextTokenId;
 
     /// @notice mapping of token ID to TokenData struct
@@ -39,7 +38,7 @@ contract Yohaku is Initializable, ERC721Upgradeable, ERC721PausableUpgradeable, 
     }
 
     function version() public pure virtual returns (string memory) {
-        return "v1.0.0";
+        return "1.0.0";
     }
 
     /// @custom:oz-upgrades-unsafe-allow constructor
@@ -84,8 +83,13 @@ contract Yohaku is Initializable, ERC721Upgradeable, ERC721PausableUpgradeable, 
     }
 
     /// @notice Mint a new NFT to the given address
-    /// @dev The caller must have the MINTER_ROLE. If 'imageUrl' is empty,
-    /// the default image URL will be used when tokenURI() is called, and store empty string in the tokenData mapping.
+    /// @dev The caller must have the MINTER_ROLE.
+    /// If 'imageUrl' is empty, the default image URL will be used when tokenURI() is called, and store empty string in
+    /// the tokenData mapping.
+    /// We don't store the default image URL in the tokenData mapping to avoid conflicts when owner updated default
+    /// image URL.
+    /// e.g. If we store the default image URL in the tokenData mapping here and then update the default image URL, the
+    /// tokenURI() will return the old default image URL.
     /// @dev Each address can hold only one Token, if the address already holds a token, it will be reverted.
     /// @param recipient The address to mint the NFT to
     /// @param imageUrl The URL of the image to be displayed
@@ -122,10 +126,16 @@ contract Yohaku is Initializable, ERC721Upgradeable, ERC721PausableUpgradeable, 
         grantRole(MINTER_ROLE, minter);
     }
 
+    /// @notice Get the previous owners of the given token ID
+    /// @param tokenId The token ID
+    /// @return An array of addresses representing the previous owners
     function getOwners(uint256 tokenId) public view returns (address[] memory) {
         return previousOwners[tokenId];
     }
 
+    /// @notice Get the TokenData struct of the given token ID
+    /// @param tokenId The token ID
+    /// @return The TokenData struct of the given token ID
     function getTokenData(uint256 tokenId) public view returns (TokenData memory) {
         return tokenData[tokenId];
     }
