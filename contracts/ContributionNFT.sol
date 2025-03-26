@@ -22,7 +22,7 @@ contract ContributionNFT is ERC721, AccessControl {
     uint8 public basePoints;
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
     uint256 private _nextTokenId;
-    string private _defaultImageUrl;
+    string public defaultImageUrl;
     string schema =
         "address TokenBoundAccount,address CurrentOwner,address TokenAddress,uint256 tokenId,uint8 Score,string Description";
     NFTFactory public nftFactory;
@@ -48,14 +48,14 @@ contract ContributionNFT is ERC721, AccessControl {
         string memory symbol,
         uint8 _basePoints,
         NFTFactory _nftFactory,
-        string memory defaultImageUrl,
+        string memory _defaultImageUrl,
         address initialMinter
     )
         ERC721(name, symbol)
     {
         nftFactory = _nftFactory;
         basePoints = _basePoints;
-        _defaultImageUrl = defaultImageUrl;
+        defaultImageUrl = _defaultImageUrl;
 
         _grantRole(DEFAULT_ADMIN_ROLE, initialMinter);
         _grantRole(MINTER_ROLE, initialMinter);
@@ -63,8 +63,8 @@ contract ContributionNFT is ERC721, AccessControl {
         eas = nftFactory.eas();
     }
 
-    function setDefaultImageUrl(string memory defaultImageUrl) external onlyRole(DEFAULT_ADMIN_ROLE) {
-        _defaultImageUrl = defaultImageUrl;
+    function setDefaultImageUrl(string memory imageURL) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        defaultImageUrl = imageURL;
     }
 
     function setImageURL(uint256 tokenId, string memory imageUrl) external onlyRole(DEFAULT_ADMIN_ROLE) {
@@ -107,10 +107,12 @@ contract ContributionNFT is ERC721, AccessControl {
     /// @param to The recipient of the NFT
     /// @param account The Token Bound Account that receives the attestation
     /// @param description The description of the NFT
+    /// @param imageUrl The URL of the image to be displayed
     function safeMint(
         address to,
         address account,
-        string memory description
+        string memory description,
+        string memory imageUrl
     )
         external
         onlyRole(MINTER_ROLE)
@@ -118,7 +120,7 @@ contract ContributionNFT is ERC721, AccessControl {
     {
         uint256 tokenId = _nextTokenId++;
 
-        bytes32 uid = _beforeMint(tokenId, to, account, description);
+        bytes32 uid = _beforeMint(tokenId, to, account, description, imageUrl);
 
         // send nft to the current owner of token bound account
         _safeMint(to, tokenId);
@@ -133,7 +135,8 @@ contract ContributionNFT is ERC721, AccessControl {
         uint256 tokenId,
         address to,
         address account,
-        string memory description
+        string memory description,
+        string memory imageUrl
     )
         internal
         returns (bytes32 uid)
@@ -145,11 +148,8 @@ contract ContributionNFT is ERC721, AccessControl {
         TokenData memory tokenData = _tokenData[tokenId];
         tokenData.owner = to;
         tokenData.description = description;
+        tokenData.imageUrl = imageUrl;
 
-        // set default image url if not provided
-        if (bytes(tokenData.imageUrl).length == 0) {
-            tokenData.imageUrl = _defaultImageUrl;
-        }
         // create new attestation
         // the recipient of attestation must be the token bound accout
         uid = _attest(to, account, tokenId, basePoints, description);
@@ -162,7 +162,8 @@ contract ContributionNFT is ERC721, AccessControl {
     function batchMint(
         address[] memory to,
         address[] memory account,
-        string memory description
+        string memory description,
+        string memory imageUrl
     )
         external
         onlyRole(MINTER_ROLE)
@@ -171,7 +172,7 @@ contract ContributionNFT is ERC721, AccessControl {
         for (uint256 i = 0; i < to.length; i++) {
             uint256 tokenId = _nextTokenId++;
 
-            bytes32 uid = _beforeMint(tokenId, to[i], account[i], description);
+            bytes32 uid = _beforeMint(tokenId, to[i], account[i], description, imageUrl);
 
             _safeMint(to[i], tokenId);
 
@@ -211,7 +212,7 @@ contract ContributionNFT is ERC721, AccessControl {
             basePoints,
             '"}'
         );
-        string memory imageUrl = bytes(tokenData.imageUrl).length > 0 ? tokenData.imageUrl : _defaultImageUrl;
+        string memory imageUrl = bytes(tokenData.imageUrl).length > 0 ? tokenData.imageUrl : defaultImageUrl;
 
         bytes memory metadata = abi.encodePacked(
             '{"name": "',
