@@ -2,6 +2,7 @@
 pragma solidity ^0.8.28;
 
 import { AccessControl } from "@openzeppelin/contracts/access/AccessControl.sol";
+import { Create2 } from "@openzeppelin/contracts/utils/Create2.sol";
 import { IEAS, Attestation } from "eas-contracts/IEAS.sol";
 import { ISchemaRegistry } from "eas-contracts/ISchemaRegistry.sol";
 import { SchemaResolver } from "eas-contracts/resolver/SchemaResolver.sol";
@@ -11,9 +12,11 @@ import "./ContributionNFT.sol";
 
 contract NFTFactory is AccessControl {
     bytes32 public schemaUID;
-    ContributionNFT[] public erc721s;
+    address[] public erc721s;
     IEAS public eas;
     AttesterResolver public resolver;
+
+    error ALREADY_DEPLOYED();
 
     event NFTCreated(address nftAddress);
     event FactoryCreated(address factoryAddress, address easAddress, address resolverAddress, bytes32 schemaUID);
@@ -61,17 +64,72 @@ contract NFTFactory is AccessControl {
         address initialMinter
     )
         public
-        returns (ContributionNFT)
+        returns (address)
     {
-        ContributionNFT nft =
-            new ContributionNFT(name, symbol, basePoints, NFTFactory(address(this)), defaultImageUrl, initialMinter);
-        erc721s.push(nft);
-        resolver.addAttester(address(nft));
-        emit NFTCreated(address(nft));
-        return nft;
+        require(!checkIsAddressDeployed(name, symbol, basePoints, defaultImageUrl, initialMinter), ALREADY_DEPLOYED());
+
+        bytes32 salt =
+            keccak256(abi.encodePacked(name, symbol, basePoints, address(this), defaultImageUrl, initialMinter));
+        bytes memory args = abi.encode(name, symbol, basePoints, address(this), defaultImageUrl, initialMinter);
+
+        bytes memory deployCode = abi.encodePacked(type(ContributionNFT).creationCode, args);
+
+        address deployedAddress = Create2.deploy(0, salt, deployCode);
+
+        erc721s.push(deployedAddress);
+        resolver.addAttester(deployedAddress);
+        emit NFTCreated(deployedAddress);
+        return deployedAddress;
     }
 
-    function getCreatedERC721s() public view returns (ContributionNFT[] memory) {
+    function checkIsAddressDeployed(
+        string calldata name,
+        string calldata symbol,
+        uint8 basePoints,
+        string memory defaultImageUrl,
+        address initialMinter
+    )
+        public
+        view
+        returns (bool)
+    {
+        bytes32 salt =
+            keccak256(abi.encodePacked(name, symbol, basePoints, address(this), defaultImageUrl, initialMinter));
+        bytes memory args = abi.encode(name, symbol, basePoints, address(this), defaultImageUrl, initialMinter);
+
+        bytes memory deployCode = abi.encodePacked(type(ContributionNFT).creationCode, args);
+
+        address deployedAddress = Create2.computeAddress(salt, keccak256(deployCode));
+
+        uint256 codeSize;
+        assembly {
+            codeSize := extcodesize(deployedAddress)
+        }
+
+        return codeSize > 0;
+    }
+
+    function computeERC721Address(
+        string calldata name,
+        string calldata symbol,
+        uint8 basePoints,
+        string memory defaultImageUrl,
+        address initialMinter
+    )
+        public
+        view
+        returns (address)
+    {
+        bytes32 salt =
+            keccak256(abi.encodePacked(name, symbol, basePoints, address(this), defaultImageUrl, initialMinter));
+        bytes memory args = abi.encode(name, symbol, basePoints, address(this), defaultImageUrl, initialMinter);
+
+        bytes memory deployCode = abi.encodePacked(type(ContributionNFT).creationCode, args);
+
+        return Create2.computeAddress(salt, keccak256(deployCode));
+    }
+
+    function getCreatedERC721s() public view returns (address[] memory) {
         return erc721s;
     }
 }
