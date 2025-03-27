@@ -35,6 +35,8 @@ contract YohakuTest is Test {
     address public alice = makeAddr("alice");
     address public bob = makeAddr("bob");
     address public charlie = makeAddr("charlie");
+    bytes4 constant INTERFACE_ID_ERC721 = 0x80ac58cd;
+    bytes4 constant INTERFACE_ID_ACCESS_CONTROL = 0x7965db0b;
 
     string schema =
         "address TokenBoundAccount,address CurrentOwner,address TokenAddress,uint256 tokenId,uint8 Score,string Description";
@@ -365,6 +367,11 @@ contract YohakuTest is Test {
 
     function testVersion() external view {
         assertEq(yohaku.version(), "1.0.0");
+    }
+
+    function testSupportsInterface() external view {
+        assertEq(yohaku.supportsInterface(INTERFACE_ID_ERC721), true);
+        assertEq(yohaku.supportsInterface(INTERFACE_ID_ACCESS_CONTROL), true);
     }
 
     function testSetMinter() external {
