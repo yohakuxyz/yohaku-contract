@@ -223,6 +223,124 @@ contract YohakuTest is Test {
         vm.stopPrank();
     }
 
+    function testMockTokenURI() external {
+        address account = _createTBA(alice);
+        vm.startPrank(owner);
+        mockERC721.safeMint(alice, account, "mint and attest", "imageUrl");
+        ContributionNFT.TokenData memory data = mockERC721.getTokenData(0);
+        assertNotEq(data.imageUrl, "defaultImage");
+        assertEq(data.imageUrl, "imageUrl");
+        bytes memory attributes = abi.encodePacked(
+            '{"trait_type": "ID", "value": "',
+            "0",
+            '"},',
+            '{"trait_type": "name", "value": "',
+            "Mock721",
+            '"}',
+            '{"trait_type": "description", "value": "',
+            "mint and attest",
+            '"}',
+            '{"trait_type": "points", "value": "',
+            uint8(5),
+            '"}'
+        );
+        bytes memory metadata = abi.encodePacked(
+            '{"name": "',
+            "Mock721",
+            " #",
+            "0",
+            '", "description": "',
+            "mint and attest",
+            '", "image": "',
+            "imageUrl",
+            '", "attributes": [',
+            attributes,
+            "]}"
+        );
+        string memory expected = string(abi.encodePacked("data:application/json;base64,", Base64.encode(metadata)));
+        assertEq(mockERC721.tokenURI(0), expected);
+        vm.stopPrank();
+    }
+
+    function testMockTokenURIAfterSetDefaultImage() external {
+        address account = _createTBA(alice);
+        vm.startPrank(owner);
+        mockERC721.safeMint(alice, account, "mint and attest", "");
+        vm.stopPrank();
+        ContributionNFT.TokenData memory data = mockERC721.getTokenData(0);
+        assertNotEq(data.imageUrl, "defaultImage");
+        assertEq(data.imageUrl, "");
+        bytes memory attributes = abi.encodePacked(
+            '{"trait_type": "ID", "value": "',
+            "0",
+            '"},',
+            '{"trait_type": "name", "value": "',
+            "Mock721",
+            '"}',
+            '{"trait_type": "description", "value": "',
+            "mint and attest",
+            '"}',
+            '{"trait_type": "points", "value": "',
+            uint8(5),
+            '"}'
+        );
+        bytes memory metadata = abi.encodePacked(
+            '{"name": "',
+            "Mock721",
+            " #",
+            "0",
+            '", "description": "',
+            "mint and attest",
+            '", "image": "',
+            "defaultImage",
+            '", "attributes": [',
+            attributes,
+            "]}"
+        );
+        string memory expected = string(abi.encodePacked("data:application/json;base64,", Base64.encode(metadata)));
+        assertEq(mockERC721.tokenURI(0), expected);
+
+        vm.startPrank(owner);
+        mockERC721.setDefaultImageUrl("newImage");
+        vm.stopPrank();
+        bytes memory newMetadata = abi.encodePacked(
+            '{"name": "',
+            "Mock721",
+            " #",
+            "0",
+            '", "description": "',
+            "mint and attest",
+            '", "image": "',
+            "newImage",
+            '", "attributes": [',
+            attributes,
+            "]}"
+        );
+        string memory newExpected =
+            string(abi.encodePacked("data:application/json;base64,", Base64.encode(newMetadata)));
+        assertEq(mockERC721.tokenURI(0), newExpected);
+
+        vm.startPrank(owner);
+        mockERC721.setImageURL(0, "newImageURL");
+        vm.stopPrank();
+        bytes memory newMetadata2 = abi.encodePacked(
+            '{"name": "',
+            "Mock721",
+            " #",
+            "0",
+            '", "description": "',
+            "mint and attest",
+            '", "image": "',
+            "newImageURL",
+            '", "attributes": [',
+            attributes,
+            "]}"
+        );
+        string memory newExpected2 =
+            string(abi.encodePacked("data:application/json;base64,", Base64.encode(newMetadata2)));
+        assertEq(mockERC721.tokenURI(0), newExpected2);
+    }
+
     function testMintERC721() external {
         address account = _createTBA(alice);
 
