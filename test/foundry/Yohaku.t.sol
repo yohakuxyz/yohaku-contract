@@ -7,7 +7,7 @@ import { IERC6551Account } from "erc6551/interfaces/IERC6551Account.sol";
 import { IERC6551Executable } from "erc6551/interfaces/IERC6551Executable.sol";
 import { Upgrades } from "openzeppelin-foundry-upgrades/Upgrades.sol";
 import { IAccessControl } from "@openzeppelin/contracts/access/IAccessControl.sol";
-
+import { Base64 } from "@openzeppelin/contracts/utils/Base64.sol";
 import { IEAS, Attestation, AttestationRequest, AttestationRequestData } from "eas-contracts/IEAS.sol";
 import { ISchemaRegistry } from "eas-contracts/ISchemaRegistry.sol";
 
@@ -364,6 +364,93 @@ contract YohakuTest is Test {
     }
 
     /* -------------- Yohaku Test ----------------- */
+
+    function testTokenURI() external {
+        _mintYohaku(alice, "image");
+        Yohaku.TokenData memory data = yohaku.getTokenData(0);
+
+        assertNotEq(data.imageUrl, "defaultImage");
+        bytes memory attributes = abi.encodePacked(
+            '{"trait_type": "ID", "value": "', "0", '"},', '{"trait_type": "name", "value": "', "[]Yohaku", '"}'
+        );
+
+        bytes memory metadata = abi.encodePacked(
+            '{"name": "[]Yohaku #',
+            "0",
+            '", "description": "',
+            data.description,
+            '", "image": "',
+            data.imageUrl,
+            '", "attributes": [',
+            attributes,
+            "]}"
+        );
+
+        string memory expected = string(abi.encodePacked("data:application/json;base64,", Base64.encode(metadata)));
+        assertEq(yohaku.tokenURI(0), expected);
+    }
+
+    function testTokenURIAfterSetDefaultImage() external {
+        _mintYohaku(alice, "");
+        _mintYohaku(bob, "image");
+        Yohaku.TokenData memory data = yohaku.getTokenData(0);
+        Yohaku.TokenData memory data2 = yohaku.getTokenData(1);
+        assertEq(data.imageUrl, "");
+        assertEq(data2.imageUrl, "image");
+        bytes memory attributes = abi.encodePacked(
+            '{"trait_type": "ID", "value": "', "0", '"},', '{"trait_type": "name", "value": "', "[]Yohaku", '"}'
+        );
+
+        bytes memory metadata = abi.encodePacked(
+            '{"name": "[]Yohaku #',
+            "0",
+            '", "description": "',
+            data.description,
+            '", "image": "',
+            "defaultImage",
+            '", "attributes": [',
+            attributes,
+            "]}"
+        );
+
+        string memory expected = string(abi.encodePacked("data:application/json;base64,", Base64.encode(metadata)));
+        assertEq(yohaku.tokenURI(0), expected);
+
+        vm.startPrank(owner);
+        yohaku.setDefaultImageUrl("newImage");
+        vm.stopPrank();
+        bytes memory newMetadata = abi.encodePacked(
+            '{"name": "[]Yohaku #',
+            "0",
+            '", "description": "',
+            data.description,
+            '", "image": "',
+            "newImage",
+            '", "attributes": [',
+            attributes,
+            "]}"
+        );
+        bytes memory bobAttributes = abi.encodePacked(
+            '{"trait_type": "ID", "value": "', "1", '"},', '{"trait_type": "name", "value": "', "[]Yohaku", '"}'
+        );
+        bytes memory bobMetadata = abi.encodePacked(
+            '{"name": "[]Yohaku #',
+            "1",
+            '", "description": "',
+            data2.description,
+            '", "image": "',
+            "image",
+            '", "attributes": [',
+            bobAttributes,
+            "]}"
+        );
+        string memory newExpected =
+            string(abi.encodePacked("data:application/json;base64,", Base64.encode(newMetadata)));
+        string memory bobExpected =
+            string(abi.encodePacked("data:application/json;base64,", Base64.encode(bobMetadata)));
+        assertEq(yohaku.tokenURI(0), newExpected);
+        assertEq(yohaku.tokenURI(1), bobExpected);
+    }
 
     function testVersion() external view {
         assertEq(yohaku.version(), "1.0.0");
