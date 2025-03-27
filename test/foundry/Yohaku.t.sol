@@ -207,6 +207,22 @@ contract YohakuTest is Test {
     }
 
     /* -------------- ContributionNFT Test ----------------- */
+    function testMockSupportsInterface() external view {
+        assertEq(mockERC721.supportsInterface(INTERFACE_ID_ERC721), true);
+        assertEq(mockERC721.supportsInterface(INTERFACE_ID_ACCESS_CONTROL), true);
+    }
+
+    function testMockGetTokenData() external {
+        address account = _createTBA(alice);
+        vm.startPrank(owner);
+        mockERC721.safeMint(alice, account, "mint and attest", "imageUrl");
+        ContributionNFT.TokenData memory data = mockERC721.getTokenData(0);
+        assertEq(data.owner, alice);
+        assertEq(data.description, "mint and attest");
+        assertEq(data.imageUrl, "imageUrl");
+        vm.stopPrank();
+    }
+
     function testMintERC721() external {
         address account = _createTBA(alice);
 
@@ -252,6 +268,25 @@ contract YohakuTest is Test {
 
         assertEq(mockERC721.ownerOf(0), alice);
         assertEq(mockERC721.ownerOf(1), bob);
+
+        vm.stopPrank();
+    }
+
+    function testRevertBatchMint() external {
+        address aliceAccount = _createTBA(alice);
+
+        vm.startPrank(owner);
+        address[] memory recipients = new address[](2);
+        recipients[0] = alice;
+        recipients[1] = alice;
+
+        address[] memory accounts = new address[](1);
+        accounts[0] = aliceAccount;
+
+        vm.expectRevert(
+            abi.encodeWithSelector(ContributionNFT.LENGTH_MISMATCH.selector, recipients.length, accounts.length)
+        );
+        mockERC721.batchMint(recipients, accounts, "batchmint", "imageUrl");
 
         vm.stopPrank();
     }

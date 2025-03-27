@@ -33,6 +33,8 @@ contract ContributionNFT is ERC721, AccessControl {
     error ALREADY_HAVE_TOKEN(address owner);
     error INVALID_MINTER(address minter);
     error INVALID_ADMIN(address admin);
+    error ATTESTATION_FAILED();
+    error LENGTH_MISMATCH(uint256 recipient, uint256 account);
 
     struct TokenData {
         address owner;
@@ -144,17 +146,14 @@ contract ContributionNFT is ERC721, AccessControl {
         if (balanceOf(to) > 0) {
             revert ALREADY_HAVE_TOKEN(to);
         }
-        // store token data
-        TokenData memory tokenData = _tokenData[tokenId];
-        tokenData.owner = to;
-        tokenData.description = description;
-        tokenData.imageUrl = imageUrl;
+        TokenData memory tokenData = TokenData({ owner: to, description: description, imageUrl: imageUrl });
+        _tokenData[tokenId] = tokenData;
 
         // create new attestation
         // the recipient of attestation must be the token bound accout
         uid = _attest(to, account, tokenId, basePoints, description);
 
-        require(uid != 0x0, "Attestation failed");
+        require(uid != 0x0, ATTESTATION_FAILED());
 
         return uid;
     }
@@ -168,7 +167,7 @@ contract ContributionNFT is ERC721, AccessControl {
         external
         onlyRole(MINTER_ROLE)
     {
-        require(to.length == account.length, "to and account length must be equal");
+        require(to.length == account.length, LENGTH_MISMATCH(to.length, account.length));
         for (uint256 i = 0; i < to.length; i++) {
             uint256 tokenId = _nextTokenId++;
 
