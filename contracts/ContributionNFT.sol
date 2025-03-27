@@ -33,7 +33,6 @@ contract ContributionNFT is ERC721, AccessControl {
     error ALREADY_HAVE_TOKEN(address owner);
     error INVALID_MINTER(address minter);
     error INVALID_ADMIN(address admin);
-    error ATTESTATION_FAILED();
     error LENGTH_MISMATCH(uint256 recipient, uint256 account);
 
     struct TokenData {
@@ -151,9 +150,8 @@ contract ContributionNFT is ERC721, AccessControl {
 
         // create new attestation
         // the recipient of attestation must be the token bound accout
+        // if eas.attest() failed, eas contract will revert the transaction
         uid = _attest(to, account, tokenId, basePoints, description);
-
-        require(uid != 0x0, ATTESTATION_FAILED());
 
         return uid;
     }
