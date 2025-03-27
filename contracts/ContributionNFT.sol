@@ -183,9 +183,8 @@ contract ContributionNFT is ERC721, AccessControl {
         emit PointUpdated(newPoints);
     }
 
-    function getTokenData(uint256 tokenId) public view returns (TokenData memory tokenData) {
-        tokenData = _tokenData[tokenId];
-        return tokenData;
+    function getTokenData(uint256 tokenId) public view returns (TokenData memory) {
+        return _tokenData[tokenId];
     }
 
     function getPoints() public view returns (uint8) {
