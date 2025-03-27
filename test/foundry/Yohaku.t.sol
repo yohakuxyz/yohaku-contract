@@ -45,6 +45,7 @@ contract YohakuTest is Test {
     event AttesterAdded(address indexed NewAttester);
     event Attested(address indexed recipient, address indexed attester, bytes32 uid, bytes32 indexed schemaUID);
     event PointUpdated(uint8 point);
+    event NFTCreated(address nftAddress);
 
     function setUp() external {
         configureChain();
@@ -53,7 +54,9 @@ contract YohakuTest is Test {
         factory = factory = new NFTFactory(owner, eas, schemaRegistry);
         schemaUID = factory.schemaUID();
         attesterResolver = factory.resolver();
-        mockERC721 = factory.createERC721("Mock721", "MOCK", 5, "defaultImage", owner);
+
+        address deployedERC721 = factory.createERC721("Mock721", "MOCK", 5, "defaultImage", owner);
+        mockERC721 = ContributionNFT(deployedERC721);
 
         address proxy = Upgrades.deployTransparentProxy(
             "Yohaku.sol",
@@ -77,16 +80,16 @@ contract YohakuTest is Test {
 
         // upgrade contract
         _upgradeContract(address(yohaku));
-        ContributionNFT newERC721 = factory.createERC721("NEWERC721", "NEW", 10, "defaultImage", owner);
+        address newERC721 = factory.createERC721("NEWERC721", "NEW", 10, "defaultImage", owner);
 
         vm.startPrank(owner);
-        newERC721.safeMint(alice, account, "mint and attest for upgraded", "imageUrl");
+        ContributionNFT(newERC721).safeMint(alice, account, "mint and attest for upgraded", "imageUrl");
         vm.stopPrank();
 
         assertEq(mockERC721.ownerOf(0), alice);
-        assertEq(newERC721.ownerOf(0), alice);
+        assertEq(ContributionNFT(newERC721).ownerOf(0), alice);
         assertEq(mockERC721.balanceOf(alice), 1);
-        assertEq(newERC721.balanceOf(alice), 1);
+        assertEq(ContributionNFT(newERC721).balanceOf(alice), 1);
         assertEq(yohaku.ownerOf(0), alice);
     }
 
@@ -204,6 +207,50 @@ contract YohakuTest is Test {
         vm.deal(address(tba), 1 ether);
         vm.expectRevert("Invalid signer");
         tba.execute(payable(address(0)), 0.5 ether, "", 0);
+    }
+
+    /* -------------- Factory Test ----------------- */
+
+    // TODO: test addAttester
+    function testCreateERC721() external {
+        vm.startPrank(owner);
+
+        vm.expectEmit(true, true, false, false);
+        emit NFTCreated(factory.computeERC721Address("Mock721", "MOCK", 10, "defaultImage", owner));
+        address deployedERC721 = factory.createERC721("Mock721", "MOCK", 10, "defaultImage", owner);
+        assertEq(factory.checkIsAddressDeployed("Mock721", "MOCK", 10, "defaultImage", owner), true);
+        assertEq(factory.computeERC721Address("Mock721", "MOCK", 10, "defaultImage", owner), deployedERC721);
+        vm.stopPrank();
+    }
+
+    function testRevertAlreadyDeployed() external {
+        vm.startPrank(owner);
+        assertEq(factory.checkIsAddressDeployed("Mock721", "MOCK", 5, "defaultImage", owner), true);
+        vm.expectRevert(abi.encodeWithSelector(NFTFactory.ALREADY_DEPLOYED.selector));
+        factory.createERC721("Mock721", "MOCK", 5, "defaultImage", owner);
+        vm.stopPrank();
+    }
+
+    function testGetCreatedERC721() external {
+        vm.startPrank(owner);
+        address deployedERC721_1 = factory.createERC721("Mock721_1", "MOCK", 10, "defaultImage", owner);
+        address deployedERC721_2 = factory.createERC721("Mock721_2", "MOCK", 10, "defaultImage", owner);
+        vm.stopPrank();
+
+        address[] memory erc721s = new address[](3);
+        erc721s[0] = address(mockERC721);
+        erc721s[1] = deployedERC721_1;
+        erc721s[2] = deployedERC721_2;
+
+        assertEq(factory.getCreatedERC721s().length, 3);
+        assertEq(factory.erc721s(0), address(mockERC721));
+        assertEq(factory.erc721s(1), deployedERC721_1);
+        assertEq(factory.erc721s(2), deployedERC721_2);
+        assertEq(factory.getCreatedERC721s(), erc721s);
+        assertEq(factory.checkIsAddressDeployed("Mock721_1", "MOCK", 10, "defaultImage", owner), true);
+        assertEq(factory.computeERC721Address("Mock721_1", "MOCK", 10, "defaultImage", owner), deployedERC721_1);
+        assertEq(factory.checkIsAddressDeployed("Mock721_2", "MOCK", 10, "defaultImage", owner), true);
+        assertEq(factory.computeERC721Address("Mock721_2", "MOCK", 10, "defaultImage", owner), deployedERC721_2);
     }
 
     /* -------------- ContributionNFT Test ----------------- */
@@ -775,13 +822,7 @@ contract YohakuTest is Test {
     }
 
     function configureChain() public {
-        if (block.chainid == 80_001) {
-            eas = IEAS(0xaEF4103A04090071165F78D45D83A0C0782c2B2a);
-            schemaRegistry = ISchemaRegistry(0x55D26f9ae0203EF95494AE4C170eD35f4Cf77797);
-        } else if (block.chainid == 137) {
-            eas = IEAS(0x5E634ef5355f45A855d02D66eCD687b1502AF790);
-            schemaRegistry = ISchemaRegistry(0x7876EEF51A891E737AF8ba5A5E0f0Fd29073D5a7);
-        } else if (block.chainid == 10) {
+        if (block.chainid == 10 || block.chainid == 11_155_420) {
             eas = IEAS(0x4200000000000000000000000000000000000021);
             schemaRegistry = ISchemaRegistry(0x4200000000000000000000000000000000000020);
         } else {
