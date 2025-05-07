@@ -33,22 +33,22 @@ contract DeployNFTFactory is Script {
         vm.stopBroadcast();
 
         string memory path = "deployments/factory/";
-				string memory fileName = string(abi.encodePacked(vm.toString(block.chainid), ".json"));
-				string memory filePath = string(abi.encodePacked(path, fileName));
+        string memory fileName = string(abi.encodePacked(vm.toString(block.chainid), ".json"));
+        string memory filePath = string(abi.encodePacked(path, fileName));
 
-				string memory jsonString = string(
-						abi.encodePacked(
-								'{"factory": "',
-								vm.toString(address(factory)),
-								'", "chainId": "',
-								vm.toString(block.chainid),
-								'", "owner": "',
-								vm.toString(owner),
-								'"}'
-						)
-				);
+        string memory jsonString = string(
+            abi.encodePacked(
+                '{"factory": "',
+                vm.toString(address(factory)),
+                '", "chainId": "',
+                vm.toString(block.chainid),
+                '", "owner": "',
+                vm.toString(owner),
+                '"}'
+            )
+        );
 
-				vm.writeFile(filePath, jsonString);
-				console2.log("Deployment addresses written to:", path);
+        vm.writeFile(filePath, jsonString);
+        console2.log("Deployment addresses written to:", path);
     }
 }
