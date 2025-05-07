@@ -24,8 +24,28 @@ contract DeployYohakuNFT is Script {
                 )
             )
         );
-        Yohaku yohaku = Yohaku(proxy);
-        console.log("Yohaku address: ", address(yohaku));
+        address implementation = Upgrades.getImplementationAddress(proxy);
+
+        console.log("Yohaku proxy address: ", proxy);
+        console.log("Yohaku implementation address: ", implementation);
+        string memory path = "deployments/yohaku/";
+        string memory fileName = string(abi.encodePacked(vm.toString(block.chainid), ".json"));
+        string memory filePath = string(abi.encodePacked(path, fileName));
+
+        string memory jsonString = string(
+            abi.encodePacked(
+                '{"proxy": "',
+                vm.toString(proxy),
+                '", "implementation": "',
+                vm.toString(address(implementation)),
+                '", "chainId": "',
+                vm.toString(block.chainid),
+                '"}'
+            )
+        );
+
         vm.stopBroadcast();
+        vm.writeFile(filePath, jsonString);
+        console.log("Deployment addresses written to:", path);
     }
 }

@@ -10,17 +10,43 @@ import "../contracts/Yohaku.sol";
 import "../contracts//NFTFactory.sol";
 
 contract UpgradeYohakuNFT is Script {
-    // Replace with the actual proxy address
-    address public proxy = 0x450CA7464E79975BA33a740fa42E36a389d65aef; //sepolia
-
     function run() external {
+        string memory path = "deployments/yohaku/";
+
+        string memory chainId = vm.toString(block.chainid);
+        string memory fileName = string(abi.encodePacked(chainId, ".json"));
+
+        bytes memory proxyAddressRaw = vm.parseJson(vm.readFile(string(abi.encodePacked(path, fileName))), ".proxy");
+
+        address proxyAddress = abi.decode(proxyAddressRaw, (address));
+
         Options memory opts;
 
         opts.referenceContract = "Yohaku.sol";
         vm.startBroadcast();
 
-        Upgrades.upgradeProxy(proxy, "YohakuV2.sol", "", opts);
+        Upgrades.upgradeProxy(proxyAddress, "YohakuV2.sol", "", opts);
 
         vm.stopBroadcast();
+
+        address implementation = Upgrades.getImplementationAddress(proxyAddress);
+
+        console.log("Yohaku proxy address: ", proxyAddress);
+        console.log("Yohaku implementation address: ", implementation);
+
+        string memory jsonString = string(
+            abi.encodePacked(
+                '{"proxy": "',
+                vm.toString(proxyAddress),
+                '", "implementation": "',
+                vm.toString(address(implementation)),
+                '", "chainId": "',
+                vm.toString(block.chainid),
+                '"}'
+            )
+        );
+
+        vm.writeFile(string(abi.encodePacked(path, fileName)), jsonString);
+        console.log("Deployment addresses written to:", path);
     }
 }
