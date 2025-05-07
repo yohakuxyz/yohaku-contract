@@ -32,6 +32,8 @@ contract Yohaku is
     uint256 private _nextTokenId;
 
     event YohakuMinted(address indexed recipient, uint256 indexed tokenId);
+    event ImageURLChanged(uint256 indexed tokenId, string indexed imageUrl);
+    event DefaultImageURLChanged(string indexed imageUrl);
 
     /// @notice mapping of token ID to TokenData struct
     mapping(uint256 => TokenData) public tokenData;
@@ -83,6 +85,7 @@ contract Yohaku is
     /// @param imageURL The default image URL to be used when tokenURI() is called
     function setDefaultImageUrl(string memory imageURL) external virtual whenNotPaused onlyRole(DEFAULT_ADMIN_ROLE) {
         defaultImageUrl = imageURL;
+        emit DefaultImageURLChanged(imageURL);
     }
 
     /// @notice Set an Image URL for the given token ID
@@ -99,6 +102,7 @@ contract Yohaku is
         onlyRole(DEFAULT_ADMIN_ROLE)
     {
         tokenData[tokenId].imageUrl = imageUrl;
+        emit ImageURLChanged(tokenId, imageUrl);
     }
 
     /// @notice Mint a new NFT to the given address
