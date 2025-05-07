@@ -20,48 +20,71 @@ In particular, the "succession" mechanism allows the accumulation of contributio
 
 In the future, we will promote collaboration with other regions facing similar issues by making it open source. Yohaku is an ambitious project that challenges regional issues and sustainable community building with the power of decentralized technology. The new approach, which is based on the spontaneous activities of local people while supporting them with digital technology and fostering them as an "unstoppable infrastructure" across generations, may become a model case for regional revitalization in Japan.
 
-## Structure
+## Table Of Contents
 
-- `/contracts`: smart contract implementations
-  - `/EAS`: custom EAS resolver contract
-  - `/TBA`: sample ERC6551 Token Bound Account(TBA) contracts
-  - `ContributionNFT.sol`: ERC721 token contract that represents contributions
-  - `NFTFactory.sol`: Factory contract to create new Contribution NFTs
-  - `Yohaku.sol`: ERC721 token contract, original token of the TBA, which is inherited between users
-- `/lib`: contract library
-- `/script`: deploy scripts
-- `/test`: tests for contract
+- [\[\] yohaku   ](#-yohaku---)
+	- [Table Of Contents](#table-of-contents)
+	- [Implementation](#implementation)
+		- [Overview](#overview)
+	- [Quick start](#quick-start)
+		- [Clone repository](#clone-repository)
+		- [Setup](#setup)
+		- [Build](#build)
+		- [Fork testing](#fork-testing)
 
-yohaku-contract is using foundry for tests and deployment of smart contracts
+## Implementation
+
+### Overview
+
+<img alt="yohaku-diagram" src="./yoahku-diagram.png">
+
+```mermaid
+sequenceDiagram
+actor m as Minter
+actor r as Recipient EOA
+participant t as TokenBoundAccount
+participant y as Yohaku.sol
+participant f as NFTFactory.sol
+participant c as ContributionNFT.sol
+participant e as EAS.sol
+
+r ->> t: initialize TokenBoundAccount
+y --> t: TokenBoundAccount is tied with tokenID
+m ->> f: call createERC721() function
+f ->> c: Deploy new ContributionNFT
+m ->> c: mint NFT which represents contribution
+c ->> r: transfer NFT to Recipient EOA
+c ->> e: attest()
+e ->> t: set recipient as TokenBoundAccount
+
+```
 
 ## Quick start
 
-### clone repository
+### Clone repository
 
 ```shell
 git clone https://github.com/yohakuxyz/yohaku-contract.git
-cd yohaku-contract && cp .env.example .env
+cd yohaku-contract
 ```
 
-### install deps
+### Setup
 
 ```shell
-forge install
+pnpm setup
 ```
 
-if you haven't installed foundry yet, follow [the official installation](https://book.getfoundry.sh/getting-started/installation)
+if you haven't installed foundry yet, follow [the official installation guide](https://book.getfoundry.sh/getting-started/installation)
 
-### build
+### Build
 
 ```shell
 pnpm build
 ```
 
-### fork testing
+### Fork testing
 
-make sure you setup environment variables and add script in [package.json file](https://github.com/yohakuxyz/yohaku-contract/blob/main/package.json)
-
-example below
+make sure you setup environment variables
 
 ```shell
 source .env && pnpm test:op
