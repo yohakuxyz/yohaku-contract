@@ -41,6 +41,7 @@ contract YohakuTest is Test {
     string schema =
         "address TokenBoundAccount,address CurrentOwner,address TokenAddress,uint256 tokenId,uint8 Score,string Description";
 
+    event YohakuMinted(address indexed recipient, uint256 indexed tokenId);
     event Minted(address indexed to, address indexed account, bytes32 indexed attestationUID);
     event AttesterAdded(address indexed NewAttester);
     event Attested(address indexed recipient, address indexed attester, bytes32 uid, bytes32 indexed schemaUID);
@@ -752,6 +753,8 @@ contract YohakuTest is Test {
     }
 
     function testSafeMint() external {
+        vm.expectEmit(true, true, true, true);
+        emit YohakuMinted(alice, 0);
         _mintYohaku(alice, "");
         assertEq(yohaku.ownerOf(0), alice);
     }

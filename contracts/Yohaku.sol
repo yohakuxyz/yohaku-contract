@@ -23,6 +23,8 @@ contract Yohaku is Initializable, ERC721Upgradeable, ERC721PausableUpgradeable, 
     bytes32 public constant PAUSER_ROLE = keccak256("PAUSER_ROLE");
     uint256 private _nextTokenId;
 
+    event YohakuMinted(address indexed recipient, uint256 indexed tokenId);
+
     /// @notice mapping of token ID to TokenData struct
     mapping(uint256 => TokenData) public tokenData;
 
@@ -117,6 +119,8 @@ contract Yohaku is Initializable, ERC721Upgradeable, ERC721PausableUpgradeable, 
 
         // mint the token
         _safeMint(recipient, tokenId);
+
+        emit YohakuMinted(recipient, tokenId);
 
         // return the TokenData struct
         return newTokenData;
