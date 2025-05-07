@@ -6,6 +6,7 @@ import { AccessControlUpgradeable } from "@openzeppelin/contracts-upgradeable/ac
 import { ERC721PausableUpgradeable } from
     "@openzeppelin/contracts-upgradeable/token/ERC721/extensions/ERC721PausableUpgradeable.sol";
 import { Initializable } from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import { UUPSUpgradeable } from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts/utils/Base64.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 
@@ -14,7 +15,14 @@ import { ISemver } from "./interfaces/ISemver.sol";
 /// @title Core ERC721 Upgradeable smart contract for Yohaku NFT
 /// @author shutanaka.eth
 /// @dev Transparent upgradeable ERC721 contract with pausable and access control from OpenZeppelin
-contract Yohaku is Initializable, ERC721Upgradeable, ERC721PausableUpgradeable, AccessControlUpgradeable, ISemver {
+contract Yohaku is
+    Initializable,
+    UUPSUpgradeable,
+    ERC721Upgradeable,
+    ERC721PausableUpgradeable,
+    AccessControlUpgradeable,
+    ISemver
+{
     using Strings for uint256;
 
     string public defaultImageUrl;
@@ -60,6 +68,7 @@ contract Yohaku is Initializable, ERC721Upgradeable, ERC721PausableUpgradeable, 
         __ERC721_init("YohakuNFT", "YHK");
         __ERC721Pausable_init();
         __AccessControl_init();
+        __UUPSUpgradeable_init();
 
         _grantRole(DEFAULT_ADMIN_ROLE, initialOwner);
         _grantRole(MINTER_ROLE, initialOwner);
@@ -72,7 +81,7 @@ contract Yohaku is Initializable, ERC721Upgradeable, ERC721PausableUpgradeable, 
     /// @notice Set the default image URL to be used when tokenURI() is called
     /// @dev The caller must have the DEFAULT_ADMIN_ROLE
     /// @param imageURL The default image URL to be used when tokenURI() is called
-    function setDefaultImageUrl(string memory imageURL) external onlyRole(DEFAULT_ADMIN_ROLE) {
+    function setDefaultImageUrl(string memory imageURL) external virtual whenNotPaused onlyRole(DEFAULT_ADMIN_ROLE) {
         defaultImageUrl = imageURL;
     }
 
@@ -80,7 +89,15 @@ contract Yohaku is Initializable, ERC721Upgradeable, ERC721PausableUpgradeable, 
     /// @dev The caller must have the DEFAULT_ADMIN_ROLE
     /// @param tokenId The token ID
     /// @param imageUrl The URL of the image to be displayed
-    function setImageURL(uint256 tokenId, string memory imageUrl) external onlyRole(DEFAULT_ADMIN_ROLE) {
+    function setImageURL(
+        uint256 tokenId,
+        string memory imageUrl
+    )
+        external
+        virtual
+        whenNotPaused
+        onlyRole(DEFAULT_ADMIN_ROLE)
+    {
         tokenData[tokenId].imageUrl = imageUrl;
     }
 
@@ -101,6 +118,8 @@ contract Yohaku is Initializable, ERC721Upgradeable, ERC721PausableUpgradeable, 
         string memory imageUrl
     )
         external
+        virtual
+        whenNotPaused
         onlyRole(MINTER_ROLE)
         returns (TokenData memory)
     {
@@ -126,21 +145,21 @@ contract Yohaku is Initializable, ERC721Upgradeable, ERC721PausableUpgradeable, 
         return newTokenData;
     }
 
-    function setMinter(address minter) public onlyRole(DEFAULT_ADMIN_ROLE) {
+    function setMinter(address minter) public virtual whenNotPaused onlyRole(DEFAULT_ADMIN_ROLE) {
         grantRole(MINTER_ROLE, minter);
     }
 
     /// @notice Get the previous owners of the given token ID
     /// @param tokenId The token ID
     /// @return An array of addresses representing the previous owners
-    function getOwners(uint256 tokenId) public view returns (address[] memory) {
+    function getOwners(uint256 tokenId) public view virtual returns (address[] memory) {
         return previousOwners[tokenId];
     }
 
     /// @notice Get the TokenData struct of the given token ID
     /// @param tokenId The token ID
     /// @return The TokenData struct of the given token ID
-    function getTokenData(uint256 tokenId) public view returns (TokenData memory) {
+    function getTokenData(uint256 tokenId) public view virtual returns (TokenData memory) {
         return tokenData[tokenId];
     }
 
@@ -150,6 +169,10 @@ contract Yohaku is Initializable, ERC721Upgradeable, ERC721PausableUpgradeable, 
 
     function unpause() public onlyRole(PAUSER_ROLE) {
         _unpause();
+    }
+
+    function _authorizeUpgrade(address newImplementation) internal override onlyRole(DEFAULT_ADMIN_ROLE) {
+        // solhint-disable-previous-line no-empty-blocks
     }
 
     // The following functions are overrides required by Solidity.
@@ -176,7 +199,7 @@ contract Yohaku is Initializable, ERC721Upgradeable, ERC721PausableUpgradeable, 
     /// @dev attributes and metadata is optimized for OpenSea
     /// @param tokenId The token ID
     /// @return The token URI
-    function tokenURI(uint256 tokenId) public view override(ERC721Upgradeable) returns (string memory) {
+    function tokenURI(uint256 tokenId) public view virtual override(ERC721Upgradeable) returns (string memory) {
         TokenData memory data = tokenData[tokenId];
 
         bytes memory attributes = abi.encodePacked(

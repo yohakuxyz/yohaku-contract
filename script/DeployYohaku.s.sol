@@ -9,13 +9,12 @@ import "../contracts/Yohaku.sol";
 import "../contracts//NFTFactory.sol";
 
 contract DeployYohakuNFT is Script {
-    address public minter = 0xc3593524E2744E547f013E17E6b0776Bc27Fc614;
+    address public minter = 0x67Df9d563032dAA77273a689041bC9cFC1B35911;
 
     function run() external {
         vm.startBroadcast();
-        address proxy = Upgrades.deployTransparentProxy(
+        address proxy = Upgrades.deployUUPSProxy(
             "Yohaku.sol",
-            minter,
             abi.encodeCall(
                 Yohaku.initialize,
                 (

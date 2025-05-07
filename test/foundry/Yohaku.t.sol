@@ -6,6 +6,7 @@ import { IERC721 } from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import { IERC6551Account } from "erc6551/interfaces/IERC6551Account.sol";
 import { IERC6551Executable } from "erc6551/interfaces/IERC6551Executable.sol";
 import { Upgrades } from "openzeppelin-foundry-upgrades/Upgrades.sol";
+import { Options } from "openzeppelin-foundry-upgrades/Options.sol";
 import { IAccessControl } from "@openzeppelin/contracts/access/IAccessControl.sol";
 import { Base64 } from "@openzeppelin/contracts/utils/Base64.sol";
 import { IEAS, Attestation, AttestationRequest, AttestationRequestData } from "eas-contracts/IEAS.sol";
@@ -17,7 +18,7 @@ import { ContributionNFT } from "../../contracts/ContributionNFT.sol";
 import { Yohaku } from "../../contracts/Yohaku.sol";
 import { NFTFactory } from "../../contracts/NFTFactory.sol";
 import { AttesterResolver } from "../../contracts/EAS/AttesterResolver.sol";
-import { YohakuV2 } from "../mock/YohakuV2.sol";
+import { YohakuV2 } from "../../contracts/YohakuV2.sol";
 
 contract YohakuTest is Test {
     ContributionNFT public mockERC721;
@@ -59,9 +60,8 @@ contract YohakuTest is Test {
         address deployedERC721 = factory.createERC721("Mock721", "MOCK", 5, "defaultImage", owner);
         mockERC721 = ContributionNFT(deployedERC721);
 
-        address proxy = Upgrades.deployTransparentProxy(
+        address proxy = Upgrades.deployUUPSProxy(
             "Yohaku.sol",
-            owner,
             abi.encodeCall(Yohaku.initialize, (owner, "Yohaku NFT is built for community", "defaultImage"))
         );
         yohaku = Yohaku(proxy);
@@ -79,6 +79,7 @@ contract YohakuTest is Test {
         mockERC721.safeMint(alice, account, "mint and attest", "imageUrl");
         vm.stopPrank();
 
+        assertEq(yohaku.version(), "1.0.0");
         // upgrade contract
         _upgradeContract(address(yohaku));
         address newERC721 = factory.createERC721("NEWERC721", "NEW", 10, "defaultImage", owner);
@@ -92,6 +93,7 @@ contract YohakuTest is Test {
         assertEq(mockERC721.balanceOf(alice), 1);
         assertEq(ContributionNFT(newERC721).balanceOf(alice), 1);
         assertEq(yohaku.ownerOf(0), alice);
+        assertEq(yohaku.version(), "2.0.0");
     }
 
     /* -------------- EAS Resolver Test ----------------- */
@@ -821,7 +823,10 @@ contract YohakuTest is Test {
     }
 
     function _upgradeContract(address proxy) internal prankception(owner) {
-        Upgrades.upgradeProxy(proxy, "YohakuV2.sol", "");
+        Options memory opts;
+
+        opts.referenceContract = "Yohaku.sol";
+        Upgrades.upgradeProxy(proxy, "YohakuV2.sol", "", opts);
     }
 
     function configureChain() public {
