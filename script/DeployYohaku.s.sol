@@ -40,6 +40,8 @@ contract DeployYohakuNFT is Script {
                 vm.toString(address(implementation)),
                 '", "chainId": "',
                 vm.toString(block.chainid),
+                '", "owner": "',
+                vm.toString(minter),
                 '"}'
             )
         );
