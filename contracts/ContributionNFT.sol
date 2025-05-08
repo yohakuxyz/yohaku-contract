@@ -23,8 +23,7 @@ contract ContributionNFT is ERC721, AccessControl {
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
     uint256 private _nextTokenId;
     string public defaultImageUrl;
-    string schema =
-        "address TokenBoundAccount,address CurrentOwner,address TokenAddress,uint256 tokenId,uint8 Score,string Description";
+
     NFTFactory public nftFactory;
     IEAS public eas;
 
