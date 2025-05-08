@@ -1,4 +1,6 @@
-# [] yohaku [![TEST](https://github.com/yohakuxyz/yohaku-contract/actions/workflows/test.yaml/badge.svg?branch=main)](https://github.com/yohakuxyz/yohaku-contract/actions/workflows/test.yaml) [![Slither Analysis](https://github.com/yohakuxyz/yohaku-contract/actions/workflows/slither.yaml/badge.svg)](https://github.com/yohakuxyz/yohaku-contract/actions/workflows/slither.yaml) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+# [] yohaku
+
+[![TEST](https://github.com/yohakuxyz/yohaku-contract/actions/workflows/test.yaml/badge.svg?branch=main)](https://github.com/yohakuxyz/yohaku-contract/actions/workflows/test.yaml) [![Slither Analysis](https://github.com/yohakuxyz/yohaku-contract/actions/workflows/slither.yaml/badge.svg)](https://github.com/yohakuxyz/yohaku-contract/actions/workflows/slither.yaml) [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 Yohaku is a project to promote community contribution activities using cutting-edge decentralized technologies, born from the terraced rice paddy restoration efforts in the Ueyama area of Mimasaka City, Okayama Prefecture.
 
@@ -22,15 +24,15 @@ In the future, we will promote collaboration with other regions facing similar i
 
 ## Table Of Contents
 
-- [\[\] yohaku   ](#-yohaku---)
-	- [Table Of Contents](#table-of-contents)
-	- [Implementation](#implementation)
-		- [Overview](#overview)
-	- [Quick start](#quick-start)
-		- [Clone repository](#clone-repository)
-		- [Setup](#setup)
-		- [Build](#build)
-		- [Fork testing](#fork-testing)
+- [\[\] yohaku](#-yohaku)
+  - [Table Of Contents](#table-of-contents)
+  - [Implementation](#implementation)
+    - [Overview](#overview)
+  - [Quick start](#quick-start)
+    - [Clone repository](#clone-repository)
+    - [Setup](#setup)
+    - [Build](#build)
+    - [Fork testing](#fork-testing)
 
 ## Implementation
 
