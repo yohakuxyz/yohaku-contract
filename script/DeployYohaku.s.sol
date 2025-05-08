@@ -7,7 +7,7 @@ import { Upgrades } from "openzeppelin-foundry-upgrades/Upgrades.sol";
 import { Yohaku } from "../contracts/Yohaku.sol";
 
 contract DeployYohakuNFT is Script {
-    address public minter = 0x67Df9d563032dAA77273a689041bC9cFC1B35911;
+    address public minter = vm.envOr("OWNER_ADDRESS", address(0x67Df9d563032dAA77273a689041bC9cFC1B35911));
 
     function run() external {
         vm.startBroadcast();

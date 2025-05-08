@@ -6,7 +6,7 @@ import { ContributionNFT } from "../contracts/ContributionNFT.sol";
 import { NFTFactory } from "../contracts/NFTFactory.sol";
 
 contract DeployContributionNFT is Script {
-    address public minter = 0x67Df9d563032dAA77273a689041bC9cFC1B35911;
+    address public minter = vm.envOr("OWNER_ADDRESS", address(0x67Df9d563032dAA77273a689041bC9cFC1B35911));
     string public defaultImageUrl = "default iamge url";
     string public name = "Contribution NFT";
     string public symbol = "CNFT";

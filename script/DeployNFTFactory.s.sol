@@ -7,7 +7,7 @@ import { IEAS } from "eas-contracts/IEAS.sol";
 import { NFTFactory } from "../contracts/NFTFactory.sol";
 
 contract DeployNFTFactory is Script {
-    address public owner = 0x67Df9d563032dAA77273a689041bC9cFC1B35911;
+    address public owner = vm.envOr("OWNER_ADDRESS", address(0x67Df9d563032dAA77273a689041bC9cFC1B35911));
     IEAS public eas;
     ISchemaRegistry public schemaRegistry;
 

@@ -14,7 +14,7 @@
     "deploy:factory-op": "forge script script/DeployNFTFactory.s.sol --rpc-url https://mainnet.optimism.io --broadcast -vvvv --private-key $DEPLOYER_PRIVATE_KEY --etherscan-api-key optimism --verify",
     "deploy:factory-sepolia": "forge script script/DeployNFTFactory.s.sol --rpc-url https://sepolia.drpc.org --broadcast -vvvv --private-key $DEPLOYER_PRIVATE_KEY --etherscan-api-key sepolia --verify",
     "deploy:cnft-sepolia": "forge script script/DeployContributionNFT.s.sol --rpc-url https://sepolia.drpc.org --broadcast -vvvv --private-key $DEPLOYER_PRIVATE_KEY --etherscan-api-key sepolia --verify",
-    "upgrade:yohaku-sepolia": "forge script script/UpgradeYohaku.s.sol --rpc-url https://sepolia.drpc.org --broadcast -vvvv --private-key $DEPLOYER_PRIVATE_KEY --sender 0x67Df9d563032dAA77273a689041bC9cFC1B35911 --etherscan-api-key sepolia --verify",
+    "upgrade:yohaku-sepolia": "forge script script/UpgradeYohaku.s.sol --rpc-url https://sepolia.drpc.org --broadcast -vvvv --private-key $DEPLOYER_PRIVATE_KEY --sender $SENDER_ADDRESS --etherscan-api-key sepolia --verify",
     "format": "forge fmt",
     "clean": "forge clean"
   },
