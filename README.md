@@ -36,7 +36,7 @@ In the future, we will promote collaboration with other regions facing similar i
 
 ### Overview
 
-<img alt="yohaku-diagram" src="./yoahku-diagram.png">
+<img alt="yohaku-diagram" src="./yohaku-diagram.png">
 
 ```mermaid
 sequenceDiagram
