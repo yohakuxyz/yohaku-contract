@@ -80,10 +80,8 @@ contract NFTFactory is AccessControl {
     {
         require(!checkIsAddressDeployed(name, symbol, basePoints, defaultImageUrl, initialMinter), ALREADY_DEPLOYED());
 
-        bytes32 salt =
-            keccak256(abi.encodePacked(name, symbol, basePoints, address(this), defaultImageUrl, initialMinter));
+        bytes32 salt = keccak256(abi.encode(name, symbol, basePoints, address(this), defaultImageUrl, initialMinter));
         bytes memory args = abi.encode(name, symbol, basePoints, address(this), defaultImageUrl, initialMinter);
-
         bytes memory deployCode = abi.encodePacked(type(ContributionNFT).creationCode, args);
 
         address deployedAddress = Create2.deploy(0, salt, deployCode);
@@ -105,13 +103,7 @@ contract NFTFactory is AccessControl {
         view
         returns (bool)
     {
-        bytes32 salt =
-            keccak256(abi.encodePacked(name, symbol, basePoints, address(this), defaultImageUrl, initialMinter));
-        bytes memory args = abi.encode(name, symbol, basePoints, address(this), defaultImageUrl, initialMinter);
-
-        bytes memory deployCode = abi.encodePacked(type(ContributionNFT).creationCode, args);
-
-        address deployedAddress = Create2.computeAddress(salt, keccak256(deployCode));
+        address deployedAddress = computeERC721Address(name, symbol, basePoints, defaultImageUrl, initialMinter);
 
         uint256 codeSize;
         assembly {
@@ -132,10 +124,8 @@ contract NFTFactory is AccessControl {
         view
         returns (address)
     {
-        bytes32 salt =
-            keccak256(abi.encodePacked(name, symbol, basePoints, address(this), defaultImageUrl, initialMinter));
+        bytes32 salt = keccak256(abi.encode(name, symbol, basePoints, address(this), defaultImageUrl, initialMinter));
         bytes memory args = abi.encode(name, symbol, basePoints, address(this), defaultImageUrl, initialMinter);
-
         bytes memory deployCode = abi.encodePacked(type(ContributionNFT).creationCode, args);
 
         return Create2.computeAddress(salt, keccak256(deployCode));
