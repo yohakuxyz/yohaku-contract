@@ -214,7 +214,17 @@ contract YohakuTest is Test {
 
     /* -------------- Factory Test ----------------- */
 
-    // TODO: test addAttester
+    function testFactoryAddAttester() external {
+        vm.startPrank(owner);
+        assertEq(attesterResolver.hasRole(attesterResolver.MINTER_ROLE(), alice), false);
+        vm.expectEmit(true, false, false, true);
+        emit AttesterAdded(alice);
+        factory.addAttester(alice);
+
+        assertEq(attesterResolver.hasRole(attesterResolver.MINTER_ROLE(), alice), true);
+        vm.stopPrank();
+    }
+
     function testCreateERC721() external {
         vm.startPrank(owner);
 

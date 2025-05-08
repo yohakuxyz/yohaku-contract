@@ -52,10 +52,22 @@ contract NFTFactory is AccessControl {
         emit FactoryCreated(address(this), address(eas), address(resolver), schemaUID);
     }
 
+    /// @notice Add a new attester to the resolver contract
+    /// @dev Only the DEFAULT_ADMIN_ROLE can add new attesters
+    /// @dev This function is intended to add address manually to the resolver contract
+    /// @param newAttester The address of the new attester
     function addAttester(address newAttester) external onlyRole(DEFAULT_ADMIN_ROLE) {
         resolver.addAttester(newAttester);
     }
 
+    /// @notice Create a new ERC721 token
+    /// @dev Deploy a new ContributionNFT contract using Create2
+    /// @param name name of the ERC721 token
+    /// @param symbol symbol of the ERC721 token
+    /// @param basePoints base points for the ERC721 token
+    /// @param defaultImageUrl default image URL for the ERC721 token
+    /// @param initialMinter address of the initial minter
+    /// @return deployedAddress address of the deployed ERC721 token
     function createERC721(
         string calldata name,
         string calldata symbol,
