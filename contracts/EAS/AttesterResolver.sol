@@ -44,7 +44,7 @@ contract AttesterResolver is SchemaResolver, AccessControl {
         if (!hasRole(MINTER_ROLE, attestation.attester)) {
             revert INVALID_ATTESTER(attestation.attester);
         } else {
-            return hasRole(MINTER_ROLE, attestation.attester);
+            return true;
         }
     }
 
