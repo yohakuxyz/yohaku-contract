@@ -47,7 +47,7 @@ contract YohakuTest is Test {
     event AttesterAdded(address indexed NewAttester);
     event Attested(address indexed recipient, address indexed attester, bytes32 uid, bytes32 indexed schemaUID);
     event PointUpdated(uint8 point);
-    event NFTCreated(address nftAddress);
+    event NFTCreated(address indexed nftAddress, bytes args, bytes32 salt);
 
     function setUp() external {
         configureChain();
@@ -228,8 +228,8 @@ contract YohakuTest is Test {
     function testCreateERC721() external {
         vm.startPrank(owner);
 
-        vm.expectEmit(true, true, false, false);
-        emit NFTCreated(factory.computeERC721Address("Mock721", "MOCK", 10, "defaultImage", owner));
+        vm.expectEmit(true, false, false, false);
+        emit NFTCreated(factory.computeERC721Address("Mock721", "MOCK", 10, "defaultImage", owner), "", "");
         address deployedERC721 = factory.createERC721("Mock721", "MOCK", 10, "defaultImage", owner);
         assertEq(factory.checkIsAddressDeployed("Mock721", "MOCK", 10, "defaultImage", owner), true);
         assertEq(factory.computeERC721Address("Mock721", "MOCK", 10, "defaultImage", owner), deployedERC721);

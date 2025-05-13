@@ -18,7 +18,7 @@ contract NFTFactory is AccessControl {
 
     error ALREADY_DEPLOYED();
 
-    event NFTCreated(address nftAddress);
+    event NFTCreated(address indexed nftAddress, bytes args, bytes32 salt);
     event FactoryCreated(address factoryAddress, address easAddress, address resolverAddress, bytes32 schemaUID);
 
     /// @notice Initialize NFTFactory contract with EAS and EAS SchemaRegistry
@@ -88,7 +88,7 @@ contract NFTFactory is AccessControl {
 
         erc721s.push(deployedAddress);
         resolver.addAttester(deployedAddress);
-        emit NFTCreated(deployedAddress);
+        emit NFTCreated(deployedAddress, args, salt);
         return deployedAddress;
     }
 
