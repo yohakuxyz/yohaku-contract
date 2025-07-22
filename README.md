@@ -26,6 +26,9 @@ In the future, we will promote collaboration with other regions facing similar i
 
 - [\[\] yohaku](#-yohaku)
   - [Table Of Contents](#table-of-contents)
+  - [Deployments](#deployments)
+    - [Factory](#factory)
+    - [Yohaku (Proxy)](#yohaku-proxy)
   - [Implementation](#implementation)
     - [Overview](#overview)
   - [Quick start](#quick-start)
@@ -33,6 +36,22 @@ In the future, we will promote collaboration with other regions facing similar i
     - [Setup](#setup)
     - [Build](#build)
     - [Fork testing](#fork-testing)
+
+## Deployments
+
+### Factory
+
+| Network (chainId) | Address                                                                                                                          |
+| ----------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| 10                | [0x2300cb3e09733b6F7390328976CdD7878f068877](https://optimistic.etherscan.io/address/0x2300cb3e09733b6F7390328976CdD7878f068877) |
+| 11155111          | [0xa57d81bDD038fCFEC275580b2d3F38dfD8B125dc](https://sepolia.etherscan.io/address/0xa57d81bDD038fCFEC275580b2d3F38dfD8B125dc)    |
+
+### Yohaku (Proxy)
+
+| Network (chainId) | Proxy Address                                                                                                                    | Implementation Address                                                                                                           |
+| ----------------- | -------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| 10                | [0x241b846142C5b06C904db55438248e2c98cA55d6](https://optimistic.etherscan.io/address/0x241b846142C5b06C904db55438248e2c98cA55d6) | [0x1F6385D8409C23AEB0641C9176F46c4C09520CD5](https://optimistic.etherscan.io/address/0x1F6385D8409C23AEB0641C9176F46c4C09520CD5) |
+| 11155111          | [0x241b846142C5b06C904db55438248e2c98cA55d6](https://sepolia.etherscan.io/address/0x241b846142C5b06C904db55438248e2c98cA55d6)    | [0x1F6385D8409C23AEB0641C9176F46c4C09520CD5](https://sepolia.etherscan.io/address/0x1F6385D8409C23AEB0641C9176F46c4C09520CD5)    |
 
 ## Implementation
 
