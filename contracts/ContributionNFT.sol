@@ -1,67 +1,61 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.20;
+pragma solidity ^0.8.28;
 
-import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-import "@openzeppelin/contracts/access/AccessControl.sol";
+import { ERC721 } from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import { AccessControl } from "@openzeppelin/contracts/access/AccessControl.sol";
 import "@openzeppelin/contracts/utils/Base64.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 
-import {IEAS, Attestation, AttestationRequest, AttestationRequestData} from "eas-contracts/IEAS.sol";
-import {ISchemaRegistry} from "eas-contracts/ISchemaRegistry.sol";
+import { IEAS, Attestation, AttestationRequest, AttestationRequestData } from "eas-contracts/IEAS.sol";
+import { ISchemaRegistry } from "eas-contracts/ISchemaRegistry.sol";
 
-import "./NFTFactory.sol";
+import { NFTFactory } from "./NFTFactory.sol";
 
-error CannotHoldMoreThanOneToken(address owner);
-
+/// @title Contribution NFT smart contract
+/// @author shutanaka.eth
+/// @notice ERC721 smart contract which represents each contribution as an NFT
+/// @dev ERC721 smart contract with AccessControl from OpenZeppelin
+/// @dev Ensure that Contribution NFTs are minted by the NFTFactory contract
 contract ContributionNFT is ERC721, AccessControl {
+    using Strings for uint256;
+
+    uint8 public basePoints;
+    bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
+    uint256 private _nextTokenId;
+    string public defaultImageUrl;
+
+    NFTFactory public nftFactory;
+    IEAS public eas;
+
+    mapping(uint256 => TokenData) private _tokenData;
+
+    error ALREADY_HAVE_TOKEN(address owner);
+    error INVALID_MINTER(address minter);
+    error INVALID_ADMIN(address admin);
+    error LENGTH_MISMATCH(uint256 recipient, uint256 account);
+
     struct TokenData {
         address owner;
         string description;
         string imageUrl;
     }
 
-    bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
-
-    using Strings for uint256;
-
-    uint8 public basePoints;
-    uint256 private _nextTokenId;
-    string private _defaultImageUrl;
-
-    string schema =
-        "address TokenBoundAccount,address CurrentOwner,address TokenAddress,uint256 tokenId,uint8 Score,string Description";
-
-    NFTFactory public nftFactory;
-
-    IEAS public eas;
-
-    mapping(uint256 => TokenData) private _tokenData;
-
-    mapping(address => uint256) public userOwnedToken;
-
     event Minted(address indexed to, address indexed account, bytes32 indexed attestationUID);
-
-    modifier onlyMinter() {
-        require(hasRole(MINTER_ROLE, msg.sender), "Caller is not a minter");
-        _;
-    }
-
-    modifier onlyAdmin() {
-        require(hasRole(DEFAULT_ADMIN_ROLE, msg.sender), "Caller is not a admin");
-        _;
-    }
+    event PointUpdated(uint8 point);
 
     constructor(
         string memory name,
         string memory symbol,
         uint8 _basePoints,
         NFTFactory _nftFactory,
-        string memory defaultImageUrl,
+        string memory _defaultImageUrl,
         address initialMinter
-    ) ERC721(name, symbol) {
+    )
+        ERC721(name, symbol)
+    {
         nftFactory = _nftFactory;
         basePoints = _basePoints;
-        _defaultImageUrl = defaultImageUrl;
+        defaultImageUrl = _defaultImageUrl;
 
         _grantRole(DEFAULT_ADMIN_ROLE, initialMinter);
         _grantRole(MINTER_ROLE, initialMinter);
@@ -69,11 +63,11 @@ contract ContributionNFT is ERC721, AccessControl {
         eas = nftFactory.eas();
     }
 
-    function setDefaultImageUrl(string memory defaultImageUrl) external onlyAdmin {
-        _defaultImageUrl = defaultImageUrl;
+    function setDefaultImageUrl(string memory imageURL) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        defaultImageUrl = imageURL;
     }
 
-    function setImageURL(uint256 tokenId, string memory imageUrl) external onlyAdmin {
+    function setImageURL(uint256 tokenId, string memory imageUrl) external onlyRole(DEFAULT_ADMIN_ROLE) {
         _tokenData[tokenId].imageUrl = imageUrl;
     }
 
@@ -84,11 +78,18 @@ contract ContributionNFT is ERC721, AccessControl {
     /// @param score The score
     /// @param description The description of the NFT
     /// @return attestationUID The unique identifier of the attestation
-    function _attest(address to, address account, uint256 tokenId, uint8 score, string memory description)
+    function _attest(
+        address to,
+        address account,
+        uint256 tokenId,
+        uint8 score,
+        string memory description
+    )
         internal
         returns (bytes32 attestationUID)
     {
-        // "address TokenBoundAccount,address CurrentOwner,address TokenAddress,uint256 tokenId,uint8 Score,string Description";
+        // "address TokenBoundAccount,address CurrentOwner,address TokenAddress,uint256 tokenId,uint8 Score,string
+        // Description";
         bytes memory data = abi.encode(account, to, address(this), tokenId, score, description);
         AttestationRequestData memory requestData = AttestationRequestData({
             recipient: account,
@@ -98,22 +99,28 @@ contract ContributionNFT is ERC721, AccessControl {
             data: data,
             value: 0
         });
-        AttestationRequest memory request = AttestationRequest({schema: nftFactory.schemaUID(), data: requestData});
+        AttestationRequest memory request = AttestationRequest({ schema: nftFactory.schemaUID(), data: requestData });
         attestationUID = eas.attest(request);
-    }
-
-    function getOwnedToken(address _owner) public view returns (uint256) {
-        return userOwnedToken[_owner];
     }
 
     /// @notice Mint a new NFT and send it to the recipient
     /// @param to The recipient of the NFT
     /// @param account The Token Bound Account that receives the attestation
     /// @param description The description of the NFT
-    function safeMint(address to, address account, string memory description) external onlyMinter returns (bytes32) {
+    /// @param imageUrl The URL of the image to be displayed
+    function safeMint(
+        address to,
+        address account,
+        string memory description,
+        string memory imageUrl
+    )
+        external
+        onlyRole(MINTER_ROLE)
+        returns (bytes32)
+    {
         uint256 tokenId = _nextTokenId++;
 
-        bytes32 uid = _beforeMint(tokenId, to, account, description);
+        bytes32 uid = _beforeMint(tokenId, to, account, description, imageUrl);
 
         // send nft to the current owner of token bound account
         _safeMint(to, tokenId);
@@ -124,37 +131,44 @@ contract ContributionNFT is ERC721, AccessControl {
         return uid;
     }
 
-    function _beforeMint(uint256 tokenId, address to, address account, string memory description)
+    function _beforeMint(
+        uint256 tokenId,
+        address to,
+        address account,
+        string memory description,
+        string memory imageUrl
+    )
         internal
         returns (bytes32 uid)
     {
         if (balanceOf(to) > 0) {
-            revert CannotHoldMoreThanOneToken(to);
+            revert ALREADY_HAVE_TOKEN(to);
         }
-        // store token data
-        TokenData memory tokenData = _tokenData[tokenId];
-        tokenData.owner = to;
-        tokenData.description = description;
+        TokenData memory tokenData = TokenData({ owner: to, description: description, imageUrl: imageUrl });
+        _tokenData[tokenId] = tokenData;
 
-        // set default image url if not provided
-        if (bytes(tokenData.imageUrl).length == 0) {
-            tokenData.imageUrl = _defaultImageUrl;
-        }
         // create new attestation
         // the recipient of attestation must be the token bound accout
+        // if eas.attest() failed, eas contract will revert the transaction
         uid = _attest(to, account, tokenId, basePoints, description);
-
-        require(uid != 0x0, "Attestation failed");
 
         return uid;
     }
 
-    function batchMint(address[] memory to, address[] memory account, string memory description) external onlyMinter {
-        require(to.length == account.length, "to and account length must be equal");
+    function batchMint(
+        address[] memory to,
+        address[] memory account,
+        string memory description,
+        string memory imageUrl
+    )
+        external
+        onlyRole(MINTER_ROLE)
+    {
+        require(to.length == account.length, LENGTH_MISMATCH(to.length, account.length));
         for (uint256 i = 0; i < to.length; i++) {
             uint256 tokenId = _nextTokenId++;
 
-            bytes32 uid = _beforeMint(tokenId, to[i], account[i], description);
+            bytes32 uid = _beforeMint(tokenId, to[i], account[i], description, imageUrl);
 
             _safeMint(to[i], tokenId);
 
@@ -163,25 +177,13 @@ contract ContributionNFT is ERC721, AccessControl {
         }
     }
 
-    function setEAS(IEAS _eas) external onlyAdmin {
-        eas = _eas;
-    }
-
-    function setNFTFactory(NFTFactory _nftFactory) external onlyAdmin {
-        nftFactory = _nftFactory;
-    }
-
-    function setSchema(string memory _schema) external onlyAdmin {
-        schema = _schema;
-    }
-
-    function updatePoints(uint8 newPoints) external onlyAdmin {
+    function updatePoints(uint8 newPoints) external onlyRole(DEFAULT_ADMIN_ROLE) {
         basePoints = newPoints;
+        emit PointUpdated(newPoints);
     }
 
-    function getTokenData(uint256 tokenId) public view returns (TokenData memory tokenData) {
-        tokenData = _tokenData[tokenId];
-        return tokenData;
+    function getTokenData(uint256 tokenId) public view returns (TokenData memory) {
+        return _tokenData[tokenId];
     }
 
     function getPoints() public view returns (uint8) {
@@ -205,7 +207,7 @@ contract ContributionNFT is ERC721, AccessControl {
             basePoints,
             '"}'
         );
-        string memory imageUrl = bytes(tokenData.imageUrl).length > 0 ? tokenData.imageUrl : _defaultImageUrl;
+        string memory imageUrl = bytes(tokenData.imageUrl).length > 0 ? tokenData.imageUrl : defaultImageUrl;
 
         bytes memory metadata = abi.encodePacked(
             '{"name": "',
